@@ -129,11 +129,26 @@ export const dashboardTracks = [
       { label: "Bundle later", value: "$80" },
     ],
   },
-] as const;
-
-export const dashboardPhaseItems = [
-  "Premium marketing landing page",
-  "Google signup and login entry",
-  "Simple post-login dashboard shell",
-  "Clear setup for later onboarding and course flow",
+  {
+    name: "Spanish",
+    status: "Saved",
+    summary:
+      "Spanish stays visible as a ready option so users can see the full course catalog from the dashboard.",
+    stats: [
+      { label: "Current level", value: "Not started" },
+      { label: "Certificate path", value: "Available" },
+      { label: "Bundle later", value: "$80" },
+    ],
+  },
+  {
+    name: "French",
+    status: "Saved",
+    summary:
+      "French remains available alongside the other tracks to reinforce that the platform supports every language path upfront.",
+    stats: [
+      { label: "Current level", value: "Not started" },
+      { label: "Certificate path", value: "Available" },
+      { label: "Bundle later", value: "$80" },
+    ],
+  },
 ] as const;

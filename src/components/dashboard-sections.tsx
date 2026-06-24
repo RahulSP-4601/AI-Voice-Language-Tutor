@@ -1,5 +1,58 @@
-import Link from "next/link";
-import { dashboardPhaseItems, dashboardTracks } from "@/lib/product-content";
+import { dashboardTracks } from "@/lib/product-content";
+
+function DashboardTopBar() {
+  return (
+    <header className="flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="text-xs uppercase tracking-[0.35em] text-amber-200">
+          AI Voice Language Tutor
+        </p>
+        <p className="mt-2 text-sm text-stone-400">
+          Voice-first learning dashboard
+        </p>
+      </div>
+      <button
+        type="button"
+        className="flex items-center gap-3 self-start rounded-full border border-white/12 bg-black/20 px-3 py-2 text-left transition hover:border-white/20 hover:bg-black/30 sm:self-auto"
+      >
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#8f9cf9_0%,#d0d5ff_100%)] text-sm font-semibold text-slate-950">
+          RP
+        </span>
+        <span>
+          <span className="block text-sm font-medium text-white">
+            Rahul Panchal
+          </span>
+          <span className="block text-xs text-stone-400">
+            My account details
+          </span>
+        </span>
+        <span className="text-stone-400">▾</span>
+      </button>
+    </header>
+  );
+}
+
+function LanguageTabs() {
+  return (
+    <section className="overflow-x-auto">
+      <div className="flex min-w-max gap-3">
+        {dashboardTracks.map((track) => (
+          <button
+            key={track.name}
+            type="button"
+            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+              track.status === "Active"
+                ? "border-emerald-300/30 bg-emerald-300/12 text-emerald-100"
+                : "border-white/10 bg-white/[0.04] text-stone-300 hover:border-white/18 hover:text-white"
+            }`}
+          >
+            {track.name}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function SummaryCard({
   label,
@@ -23,34 +76,38 @@ function SummaryCard({
 
 export function DashboardHeader() {
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(247,200,116,0.16),rgba(255,255,255,0.03))] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.24)]">
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div>
-          <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
-            Dashboard Preview
-          </p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
-            A calm home base after Google login.
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-8 text-stone-200">
-            The dashboard is intentionally simple in phase one: current path,
-            recent progress, and a clear next move into the free Basic 1 course.
-          </p>
+    <div className="space-y-5">
+      <DashboardTopBar />
+      <LanguageTabs />
+      <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(247,200,116,0.16),rgba(255,255,255,0.03))] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.24)]">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
+              Dashboard
+            </p>
+            <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
+              Your language tracks, progress, and account in one place.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-stone-200">
+              Keep every course language visible, highlight the current active
+              path, and make account access obvious in the top-right corner.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SummaryCard
+              label="Current Track"
+              title="Japanese"
+              subtitle="Basic 1 is ready to start."
+            />
+            <SummaryCard
+              label="Bundle Status"
+              title="Free Track"
+              subtitle="$80 upsell comes later."
+            />
+          </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SummaryCard
-            label="Current Track"
-            title="Japanese"
-            subtitle="Basic 1 is ready to start."
-          />
-          <SummaryCard
-            label="Bundle Status"
-            title="Free Track"
-            subtitle="$80 upsell comes later."
-          />
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
 
@@ -98,67 +155,6 @@ export function DashboardTrackGrid() {
       {dashboardTracks.map((track) => (
         <TrackCard key={track.name} {...track} />
       ))}
-    </section>
-  );
-}
-
-function NextStepCard() {
-  return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-6">
-      <p className="text-sm uppercase tracking-[0.3em] text-amber-200">
-        Next Recommended Step
-      </p>
-      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white">
-        Start Japanese Basic 1 and earn the first free certificate.
-      </h2>
-      <p className="mt-4 max-w-2xl text-sm leading-8 text-stone-300">
-        In this phase, the dashboard guides users toward one obvious action.
-        They should never wonder what to do after login.
-      </p>
-      <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-        <Link
-          href="/auth"
-          className="rounded-full bg-[linear-gradient(135deg,#f7c874_0%,#ff8c69_100%)] px-6 py-3 text-center font-semibold text-slate-950 transition hover:scale-[1.01]"
-        >
-          Connect Google
-        </Link>
-        <Link
-          href="/"
-          className="rounded-full border border-white/15 bg-white/5 px-6 py-3 text-center font-medium text-white transition hover:border-white/30 hover:bg-white/10"
-        >
-          Back to Landing Page
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function PhaseOneCard() {
-  return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-[#0c1214] p-6">
-      <p className="text-sm uppercase tracking-[0.3em] text-emerald-200">
-        Included In Phase One
-      </p>
-      <div className="mt-6 space-y-4">
-        {dashboardPhaseItems.map((item) => (
-          <div
-            key={item}
-            className="flex items-start gap-3 rounded-2xl border border-white/6 bg-white/[0.03] px-4 py-3"
-          >
-            <span className="mt-1 h-2.5 w-2.5 rounded-full bg-emerald-300" />
-            <p className="text-sm leading-7 text-stone-200">{item}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function DashboardNextStep() {
-  return (
-    <section className="grid gap-5 lg:grid-cols-[1fr_0.95fr]">
-      <NextStepCard />
-      <PhaseOneCard />
     </section>
   );
 }
