@@ -99,7 +99,6 @@ export const dashboardCourses = [
   {
     slug: "japanese",
     name: "Japanese",
-    badge: "Kana + Voice",
     description:
       "Open the Japanese path to continue with Basic 1 speaking drills, pronunciation work, and certificate progress.",
     currentLevel: "Basic 1",
@@ -108,11 +107,18 @@ export const dashboardCourses = [
     bundleNote: "$80 bundle unlocks the full path later.",
     certificateState: "Open",
     nextLesson: "Greetings and sounds",
+    officialFramework: "JLPT",
+    levels: [
+      { name: "N1", summary: "Advanced mastery", completed: false },
+      { name: "N2", summary: "Professional fluency", completed: false },
+      { name: "N3", summary: "Practical intermediate", completed: false },
+      { name: "N4", summary: "Elementary foundation", completed: true },
+      { name: "N5", summary: "Starter basics", completed: true },
+    ],
   },
   {
     slug: "english",
     name: "English",
-    badge: "Global Fluency",
     description:
       "Use the English path for interview confidence, daily communication practice, and structured speaking growth.",
     currentLevel: "Basic 1",
@@ -121,11 +127,19 @@ export const dashboardCourses = [
     bundleNote: "$80 bundle stays available after the free level.",
     certificateState: "Available",
     nextLesson: "Introductions and basics",
+    officialFramework: "CEFR",
+    levels: [
+      { name: "A1", summary: "Foundation", completed: true },
+      { name: "A2", summary: "Elementary", completed: false },
+      { name: "B1", summary: "Intermediate", completed: false },
+      { name: "B2", summary: "Upper intermediate", completed: false },
+      { name: "C1", summary: "Advanced", completed: false },
+      { name: "C2", summary: "Mastery", completed: false },
+    ],
   },
   {
     slug: "german",
     name: "German",
-    badge: "A1 Foundation",
     description:
       "German stays available as a dedicated course button so the user can jump directly into that language path.",
     currentLevel: "Basic 1",
@@ -134,11 +148,19 @@ export const dashboardCourses = [
     bundleNote: "$80 bundle unlocks later levels.",
     certificateState: "Available",
     nextLesson: "Numbers and greetings",
+    officialFramework: "CEFR",
+    levels: [
+      { name: "A1", summary: "Foundation", completed: true },
+      { name: "A2", summary: "Elementary", completed: false },
+      { name: "B1", summary: "Intermediate", completed: false },
+      { name: "B2", summary: "Upper intermediate", completed: false },
+      { name: "C1", summary: "Advanced", completed: false },
+      { name: "C2", summary: "Mastery", completed: false },
+    ],
   },
   {
     slug: "spanish",
     name: "Spanish",
-    badge: "Everyday Flow",
     description:
       "Spanish opens as its own course path for warm daily speaking practice and certificate-driven progression.",
     currentLevel: "Basic 1",
@@ -147,11 +169,19 @@ export const dashboardCourses = [
     bundleNote: "$80 bundle unlocks later levels.",
     certificateState: "Available",
     nextLesson: "Common phrases",
+    officialFramework: "CEFR",
+    levels: [
+      { name: "A1", summary: "Foundation", completed: true },
+      { name: "A2", summary: "Elementary", completed: false },
+      { name: "B1", summary: "Intermediate", completed: false },
+      { name: "B2", summary: "Upper intermediate", completed: false },
+      { name: "C1", summary: "Advanced", completed: false },
+      { name: "C2", summary: "Mastery", completed: false },
+    ],
   },
   {
     slug: "french",
     name: "French",
-    badge: "Accent Focus",
     description:
       "French remains visible as its own button so the dashboard always feels like a complete multi-language product.",
     currentLevel: "Basic 1",
@@ -160,6 +190,15 @@ export const dashboardCourses = [
     bundleNote: "$80 bundle unlocks later levels.",
     certificateState: "Available",
     nextLesson: "Sounds and greetings",
+    officialFramework: "CEFR",
+    levels: [
+      { name: "A1", summary: "Foundation", completed: true },
+      { name: "A2", summary: "Elementary", completed: false },
+      { name: "B1", summary: "Intermediate", completed: false },
+      { name: "B2", summary: "Upper intermediate", completed: false },
+      { name: "C1", summary: "Advanced", completed: false },
+      { name: "C2", summary: "Mastery", completed: false },
+    ],
   },
 ] as const;
 
