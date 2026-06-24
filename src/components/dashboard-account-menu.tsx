@@ -101,7 +101,7 @@ function AccountPanel(props: {
         <MenuLink
           href="/dashboard/account"
           label="Account"
-          sublabel="See purchased courses so far"
+          sublabel="See your learning progress so far"
         />
         <button
           type="button"

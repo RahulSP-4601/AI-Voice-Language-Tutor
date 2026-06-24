@@ -38,10 +38,13 @@ export interface LessonFeedback {
 }
 
 export interface CourseLesson {
+  acceptableResponses: string[];
+  demoPhrase: string;
   id: string;
   title: string;
   durationMinutes: number;
   mode: LessonMode;
+  replyPrompt: string;
   targetPattern: string;
   learnerOutcome: string;
   turns: LessonTurn[];
@@ -87,18 +90,19 @@ export interface CourseFramework {
 }
 
 export interface LanguageCourseDefinition {
-  slug: CourseSlug;
-  name: string;
-  bundlePrice: number;
-  nativeSupportLabel: string;
   heroSummary: string;
   lessonDuration: string;
   framework: CourseFramework;
+  name: string;
+  nativeSupportLabel: string;
+  slug: CourseSlug;
 }
 
 export interface VoiceLessonSeed {
+  acceptableResponses: string[];
   checkpoint: string;
   checkpointLabel: string;
+  demoPhrase: string;
   guidedPrompt: string;
   id: string;
   mode: LessonMode;
@@ -106,6 +110,7 @@ export interface VoiceLessonSeed {
   objective: string;
   outcome: string;
   pattern: string;
+  replyPrompt: string;
   state: CompletionState;
   supportHint: string;
   supportNote: string;

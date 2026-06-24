@@ -40,14 +40,14 @@ export const landingSteps = [
   {
     title: "Guide them to Basic 1",
     description:
-      "The dashboard immediately points users into the free level so they feel value before any upsell pressure.",
+      "The dashboard immediately points users into the first live lesson so they can start speaking without friction.",
   },
 ] as const;
 
 export const processHighlights = [
   "Premium landing page establishes trust in under 10 seconds.",
   "Google login removes friction and keeps the first conversion clean.",
-  "A focused dashboard gives users one obvious next action after auth.",
+  "A focused dashboard gives users one obvious next action after auth: start learning.",
 ] as const;
 
 export const landingComparison = [
@@ -57,9 +57,9 @@ export const landingComparison = [
       "Instead of trapping users in passive vocabulary loops, the product makes them hear, repeat, and improve live.",
   },
   {
-    title: "Certificate before bundle",
+    title: "Real lessons before complexity",
     description:
-      "Users get a real completion moment before they ever see the $80 bundle decision, which builds trust.",
+      "Users start speaking inside structured lessons immediately instead of getting trapped in setup, pricing, or clutter.",
   },
   {
     title: "Premium funnel, not utility UI",
@@ -79,7 +79,7 @@ export const landingTestimonials = [
     name: "Trust-building entry",
     role: "Conversion direction",
     quote:
-      "The free certificate gives users a reason to believe the learning path is real before they buy the bundle.",
+      "The first live lesson should prove the learning path is real within minutes, not after a long setup flow.",
   },
   {
     name: "Clean phase-one scope",
@@ -91,8 +91,8 @@ export const landingTestimonials = [
 
 export const landingHeroStats = [
   { value: "5", label: "Launch languages in the first release." },
-  { value: "1", label: "Free level with certificate before upgrade." },
-  { value: "$80", label: "Full bundle unlock for each language path." },
+  { value: "1", label: "One focused lesson flow to start speaking fast." },
+  { value: "Free", label: "Every available course stays open to learners." },
 ] as const;
 
 export const dashboardCourses = [
@@ -103,8 +103,8 @@ export const dashboardCourses = [
       "Open the Japanese path to continue with Basic 1 speaking drills, pronunciation work, and certificate progress.",
     currentLevel: "Basic 1",
     statusNote: "Foundation lessons are ready to start.",
-    bundleStatus: "Free Track",
-    bundleNote: "$80 bundle unlocks the full path later.",
+    bundleStatus: "Open Access",
+    bundleNote: "All current lessons are available to every learner.",
     certificateState: "Open",
     nextLesson: "Greetings and sounds",
     officialFramework: "JLPT",
@@ -112,8 +112,8 @@ export const dashboardCourses = [
       { name: "N1", summary: "Advanced mastery", completed: false },
       { name: "N2", summary: "Professional fluency", completed: false },
       { name: "N3", summary: "Practical intermediate", completed: false },
-      { name: "N4", summary: "Elementary foundation", completed: true },
-      { name: "N5", summary: "Starter basics", completed: true },
+      { name: "N4", summary: "Elementary foundation", completed: false },
+      { name: "N5", summary: "Starter basics", completed: false },
     ],
   },
   {
@@ -123,13 +123,13 @@ export const dashboardCourses = [
       "Use the English path for interview confidence, daily communication practice, and structured speaking growth.",
     currentLevel: "Basic 1",
     statusNote: "Ready when you want to start.",
-    bundleStatus: "Not Purchased",
-    bundleNote: "$80 bundle stays available after the free level.",
+    bundleStatus: "Open Access",
+    bundleNote: "Learners can begin the English course immediately.",
     certificateState: "Available",
     nextLesson: "Introductions and basics",
     officialFramework: "CEFR",
     levels: [
-      { name: "A1", summary: "Foundation", completed: true },
+      { name: "A1", summary: "Foundation", completed: false },
       { name: "A2", summary: "Elementary", completed: false },
       { name: "B1", summary: "Intermediate", completed: false },
       { name: "B2", summary: "Upper intermediate", completed: false },
@@ -144,13 +144,13 @@ export const dashboardCourses = [
       "German stays available as a dedicated course button so the user can jump directly into that language path.",
     currentLevel: "Basic 1",
     statusNote: "Waiting for first lesson.",
-    bundleStatus: "Not Purchased",
-    bundleNote: "$80 bundle unlocks later levels.",
+    bundleStatus: "Open Access",
+    bundleNote: "Learners can begin the German course immediately.",
     certificateState: "Available",
     nextLesson: "Numbers and greetings",
     officialFramework: "CEFR",
     levels: [
-      { name: "A1", summary: "Foundation", completed: true },
+      { name: "A1", summary: "Foundation", completed: false },
       { name: "A2", summary: "Elementary", completed: false },
       { name: "B1", summary: "Intermediate", completed: false },
       { name: "B2", summary: "Upper intermediate", completed: false },
@@ -165,13 +165,13 @@ export const dashboardCourses = [
       "Spanish opens as its own course path for warm daily speaking practice and certificate-driven progression.",
     currentLevel: "Basic 1",
     statusNote: "Free foundation course available.",
-    bundleStatus: "Not Purchased",
-    bundleNote: "$80 bundle unlocks later levels.",
+    bundleStatus: "Open Access",
+    bundleNote: "Learners can begin the Spanish course immediately.",
     certificateState: "Available",
     nextLesson: "Common phrases",
     officialFramework: "CEFR",
     levels: [
-      { name: "A1", summary: "Foundation", completed: true },
+      { name: "A1", summary: "Foundation", completed: false },
       { name: "A2", summary: "Elementary", completed: false },
       { name: "B1", summary: "Intermediate", completed: false },
       { name: "B2", summary: "Upper intermediate", completed: false },
@@ -186,13 +186,13 @@ export const dashboardCourses = [
       "French remains visible as its own button so the dashboard always feels like a complete multi-language product.",
     currentLevel: "Basic 1",
     statusNote: "Free course path is ready.",
-    bundleStatus: "Not Purchased",
-    bundleNote: "$80 bundle unlocks later levels.",
+    bundleStatus: "Open Access",
+    bundleNote: "Learners can begin the French course immediately.",
     certificateState: "Available",
     nextLesson: "Sounds and greetings",
     officialFramework: "CEFR",
     levels: [
-      { name: "A1", summary: "Foundation", completed: true },
+      { name: "A1", summary: "Foundation", completed: false },
       { name: "A2", summary: "Elementary", completed: false },
       { name: "B1", summary: "Intermediate", completed: false },
       { name: "B2", summary: "Upper intermediate", completed: false },

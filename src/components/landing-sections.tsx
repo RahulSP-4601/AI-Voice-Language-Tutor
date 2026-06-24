@@ -41,9 +41,9 @@ function HeroCopy() {
           Language learning that finally feels like a premium speaking coach.
         </h1>
         <p className="max-w-2xl text-base leading-8 text-stone-300 sm:text-lg">
-          Practice live with an AI tutor, build real speaking confidence, earn
-          your first certificate for free, then unlock the full path for any
-          language with one clean purchase.
+          Practice live with an AI tutor, build real speaking confidence, and
+          move through structured language lessons designed around speaking
+          first.
         </p>
       </div>
     </div>
@@ -213,8 +213,8 @@ function LanguageCard({
       <h3 className="text-2xl font-semibold text-white">{name}</h3>
       <p className="mt-3 text-sm leading-7 text-stone-300">{promise}</p>
       <div className="mt-8 space-y-3 text-sm text-stone-200">
-        <DetailRow label="Basic 1" value="Free" valueClassName="text-emerald-200" />
-        <DetailRow label="Bundle after trial" value="$80" />
+        <DetailRow label="Course access" value="Free" valueClassName="text-emerald-200" />
+        <DetailRow label="Lesson format" value="Voice-first" />
         <DetailRow label="Total levels" value="5" />
       </div>
     </article>
@@ -247,8 +247,8 @@ export function LanguagesSection() {
         <SectionHeading
           className="mb-8 max-w-2xl"
           eyebrow="Language Paths"
-          title="Browse every language first. Commit only after the free certificate."
-          body="Every path begins with a free Basic 1 foundation. Paid levels unlock together after the user sees real progress."
+          title="Browse every language and start learning right away."
+          body="Every path begins with a structured foundation level built around speaking, listening, and guided repetition."
         />
         <div className="grid gap-5 lg:grid-cols-5">
           {landingLanguages.map((language) => (
@@ -312,8 +312,8 @@ export function ProcessSection() {
         <div className="max-w-xl space-y-6">
           <SectionHeading
             eyebrow="How It Works"
-            title="A clean funnel from premium first impression to paid language path."
-            body="We lead with style, prove speaking value quickly, then upgrade users when they already trust the certificate and the coaching loop."
+            title="A clean funnel from premium first impression to live language practice."
+            body="We lead with a premium first impression, then move learners directly into guided speaking sessions so the value feels real fast."
           />
           <ProcessOverview />
         </div>
@@ -426,12 +426,12 @@ export function FinalCtaSection() {
               Launch Funnel
             </p>
             <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
-              Free certificate first. Full paid path only after the user feels the transformation.
+              Free access first. Real speaking practice from the first session.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-8 text-stone-200">
               Start with Google login, let the user test the voice tutor in
-              Basic 1, then bring them into the dashboard with a clear bundle
-              story.
+              Basic 1, then bring them into the dashboard and course runner to
+              keep learning.
             </p>
           </div>
           <div className="flex flex-col gap-4">

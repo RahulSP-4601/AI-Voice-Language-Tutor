@@ -36,10 +36,13 @@ function createFeedback() {
 
 export function createTutorLoopLesson(seed: VoiceLessonSeed): CourseLesson {
   return {
+    acceptableResponses: seed.acceptableResponses,
+    demoPhrase: seed.demoPhrase,
     id: seed.id,
     title: seed.title,
     durationMinutes: 18,
     mode: seed.mode,
+    replyPrompt: seed.replyPrompt,
     targetPattern: seed.pattern,
     learnerOutcome: seed.outcome,
     turns: createLessonTurns(seed),
@@ -119,8 +122,11 @@ export function createPlaceholderLevel(input: {
         supportNote: "Keep the explanation simple, brief, and confidence-building.",
         state: "not_started",
         mode: "speaking",
+        demoPhrase: "Ready to speak this level with the tutor?",
         pattern: "Live guided conversation preview",
         outcome: "Learner understands what speaking goals unlock in this level.",
+        replyPrompt: "Say one short readiness response aloud.",
+        acceptableResponses: ["yes", "ready", "i am ready"],
         modelPrompt: `The AI previews what ${input.officialLabel} speaking feels like in short phrases and live responses.`,
         guidedPrompt: "Ask the learner one simple readiness question and one short spoken reply.",
         checkpoint: "Confirm the learner is ready for the next speaking path.",

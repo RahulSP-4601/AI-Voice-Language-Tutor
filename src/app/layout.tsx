@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "AI Voice Language Tutor",
   description:
-    "Premium voice-first language learning with Google auth, free certificates, and bundled language paths.",
+    "Premium voice-first language learning with Google auth, guided speaking lessons, and structured course paths.",
 };
 
 export default function RootLayout({

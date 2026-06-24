@@ -122,19 +122,19 @@ export function AccountSummary() {
   return (
     <section className="rounded-[2rem] border border-white/10 bg-white/[0.045] p-7">
       <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
-        Purchased courses
+        Learning account
       </p>
       <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
-        Account and purchases
+        Progress and course access
       </h1>
       <p className="mt-4 max-w-2xl text-base leading-8 text-stone-300">
-        Paid course bundles will appear here after checkout. Free access can
-        continue normally even when no paid bundle has been purchased yet.
+        All available courses are free. This area can track your active
+        languages, completed modules, and later certificates in one place.
       </p>
       <div className="mt-8 grid gap-4">
-        <PurchasedCourseCard name="Japanese Bundle" status="Not purchased" />
-        <PurchasedCourseCard name="English Bundle" status="Not purchased" />
-        <PurchasedCourseCard name="German Bundle" status="Not purchased" />
+        <PurchasedCourseCard name="Japanese course" status="Available" />
+        <PurchasedCourseCard name="English course" status="Available" />
+        <PurchasedCourseCard name="German course" status="Available" />
       </div>
     </section>
   );
