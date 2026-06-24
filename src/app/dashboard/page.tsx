@@ -1,6 +1,5 @@
 import { AuthHashCleaner } from "@/components/auth-hash-cleaner";
 import {
-  DashboardCourseTabs,
   DashboardOverview,
   DashboardTopBar,
 } from "@/components/dashboard-sections";
@@ -11,7 +10,6 @@ export default function DashboardPage() {
       <AuthHashCleaner />
       <div className="mx-auto max-w-7xl space-y-8">
         <DashboardTopBar />
-        <DashboardCourseTabs />
         <DashboardOverview />
       </div>
     </main>

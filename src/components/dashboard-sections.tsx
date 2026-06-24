@@ -81,21 +81,13 @@ function OverviewCourseCard(props: {
 
 export function DashboardOverview() {
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(247,200,116,0.14),rgba(255,255,255,0.03))] p-7 shadow-[0_30px_90px_rgba(0,0,0,0.2)]">
-      <div className="max-w-3xl">
+    <section>
+      <div className="mb-6">
         <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
-          Choose a language
-        </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
-          Pick any course path and jump straight into that language.
-        </h1>
-        <p className="mt-4 text-base leading-8 text-stone-200">
-          Every language acts as its own entry point. Select a course to open
-          that learning path, and use the account menu anytime for profile,
-          purchases, or logout.
+          Select a course
         </p>
       </div>
-      <div className="mt-8 grid gap-4 lg:grid-cols-5">
+      <div className="grid gap-4 lg:grid-cols-5">
         {dashboardCourses.map((course) => (
           <OverviewCourseCard
             key={course.slug}
