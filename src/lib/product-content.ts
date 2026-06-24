@@ -95,60 +95,72 @@ export const landingHeroStats = [
   { value: "$80", label: "Full bundle unlock for each language path." },
 ] as const;
 
-export const dashboardTracks = [
+export const dashboardCourses = [
   {
+    slug: "japanese",
     name: "Japanese",
-    status: "Active",
-    summary:
-      "This is the hero path for the current dashboard preview and the cleanest first-time user story.",
-    stats: [
-      { label: "Current level", value: "Basic 1" },
-      { label: "Certificate path", value: "Open" },
-      { label: "Bundle later", value: "$80" },
-    ],
+    badge: "Kana + Voice",
+    description:
+      "Open the Japanese path to continue with Basic 1 speaking drills, pronunciation work, and certificate progress.",
+    currentLevel: "Basic 1",
+    statusNote: "Foundation lessons are ready to start.",
+    bundleStatus: "Free Track",
+    bundleNote: "$80 bundle unlocks the full path later.",
+    certificateState: "Open",
+    nextLesson: "Greetings and sounds",
   },
   {
+    slug: "english",
     name: "English",
-    status: "Saved",
-    summary:
-      "Users can explore more than one language later, but the dashboard should still highlight a main active track.",
-    stats: [
-      { label: "Current level", value: "Not started" },
-      { label: "Certificate path", value: "Available" },
-      { label: "Bundle later", value: "$80" },
-    ],
+    badge: "Global Fluency",
+    description:
+      "Use the English path for interview confidence, daily communication practice, and structured speaking growth.",
+    currentLevel: "Basic 1",
+    statusNote: "Ready when you want to start.",
+    bundleStatus: "Not Purchased",
+    bundleNote: "$80 bundle stays available after the free level.",
+    certificateState: "Available",
+    nextLesson: "Introductions and basics",
   },
   {
+    slug: "german",
     name: "German",
-    status: "Saved",
-    summary:
-      "Additional languages stay visible so the business model feels expandable without cluttering the first experience.",
-    stats: [
-      { label: "Current level", value: "Not started" },
-      { label: "Certificate path", value: "Available" },
-      { label: "Bundle later", value: "$80" },
-    ],
+    badge: "A1 Foundation",
+    description:
+      "German stays available as a dedicated course button so the user can jump directly into that language path.",
+    currentLevel: "Basic 1",
+    statusNote: "Waiting for first lesson.",
+    bundleStatus: "Not Purchased",
+    bundleNote: "$80 bundle unlocks later levels.",
+    certificateState: "Available",
+    nextLesson: "Numbers and greetings",
   },
   {
+    slug: "spanish",
     name: "Spanish",
-    status: "Saved",
-    summary:
-      "Spanish stays visible as a ready option so users can see the full course catalog from the dashboard.",
-    stats: [
-      { label: "Current level", value: "Not started" },
-      { label: "Certificate path", value: "Available" },
-      { label: "Bundle later", value: "$80" },
-    ],
+    badge: "Everyday Flow",
+    description:
+      "Spanish opens as its own course path for warm daily speaking practice and certificate-driven progression.",
+    currentLevel: "Basic 1",
+    statusNote: "Free foundation course available.",
+    bundleStatus: "Not Purchased",
+    bundleNote: "$80 bundle unlocks later levels.",
+    certificateState: "Available",
+    nextLesson: "Common phrases",
   },
   {
+    slug: "french",
     name: "French",
-    status: "Saved",
-    summary:
-      "French remains available alongside the other tracks to reinforce that the platform supports every language path upfront.",
-    stats: [
-      { label: "Current level", value: "Not started" },
-      { label: "Certificate path", value: "Available" },
-      { label: "Bundle later", value: "$80" },
-    ],
+    badge: "Accent Focus",
+    description:
+      "French remains visible as its own button so the dashboard always feels like a complete multi-language product.",
+    currentLevel: "Basic 1",
+    statusNote: "Free course path is ready.",
+    bundleStatus: "Not Purchased",
+    bundleNote: "$80 bundle unlocks later levels.",
+    certificateState: "Available",
+    nextLesson: "Sounds and greetings",
   },
 ] as const;
+
+export type DashboardCourseSlug = (typeof dashboardCourses)[number]["slug"];
