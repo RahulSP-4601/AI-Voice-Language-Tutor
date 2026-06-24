@@ -5,11 +5,12 @@ import {
   landingLanguages,
   landingSteps,
   landingTestimonials,
+  processHighlights,
 } from "@/lib/product-content";
 
 function LandingNav() {
   return (
-    <nav className="mb-14 flex items-center justify-between rounded-full border border-white/10 bg-white/5 px-5 py-3 backdrop-blur">
+    <nav className="mb-9 flex items-center justify-between rounded-full border border-white/10 bg-white/5 px-5 py-3 backdrop-blur">
       <p className="text-xs uppercase tracking-[0.4em] text-amber-200">
         AI Voice Tutor
       </p>
@@ -30,16 +31,16 @@ function LandingNav() {
 
 function HeroCopy() {
   return (
-    <div className="space-y-8">
-      <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-sm text-amber-100">
+    <div className="space-y-6">
+      <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-xs text-amber-100 sm:text-sm">
         <span className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_20px_rgba(252,211,77,0.85)]" />
         Start from zero. Speak with AI. Get certified.
       </div>
-      <div className="max-w-4xl space-y-6">
-        <h1 className="max-w-4xl text-5xl font-semibold tracking-[-0.05em] text-white sm:text-6xl lg:text-8xl">
+      <div className="max-w-4xl space-y-5">
+        <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl lg:text-7xl">
           Language learning that finally feels like a premium speaking coach.
         </h1>
-        <p className="max-w-2xl text-lg leading-8 text-stone-300 sm:text-xl">
+        <p className="max-w-2xl text-base leading-8 text-stone-300 sm:text-lg">
           Practice live with an AI tutor, build real speaking confidence, earn
           your first certificate for free, then unlock the full path for any
           language with one clean purchase.
@@ -54,13 +55,13 @@ function HeroActions() {
     <div className="flex flex-col gap-4 sm:flex-row">
       <Link
         href="/auth"
-        className="rounded-full bg-[linear-gradient(135deg,#f7c874_0%,#ff8c69_100%)] px-7 py-4 text-center text-base font-semibold text-slate-950 transition duration-300 hover:scale-[1.02] hover:shadow-[0_24px_60px_rgba(255,150,95,0.35)]"
+        className="rounded-full bg-[linear-gradient(135deg,#f7c874_0%,#ff8c69_100%)] px-6 py-3.5 text-center text-sm font-semibold text-slate-950 transition duration-300 hover:scale-[1.02] hover:shadow-[0_24px_60px_rgba(255,150,95,0.35)] sm:text-base"
       >
         Start Free with Basic 1
       </Link>
       <Link
         href="#courses"
-        className="rounded-full border border-white/15 bg-white/5 px-7 py-4 text-center text-base font-medium text-white transition hover:border-white/35 hover:bg-white/10"
+        className="rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-center text-sm font-medium text-white transition hover:border-white/35 hover:bg-white/10 sm:text-base"
       >
         See Courses
       </Link>
@@ -70,13 +71,13 @@ function HeroActions() {
 
 function HeroStats() {
   return (
-    <div className="grid gap-4 text-sm text-stone-300 sm:grid-cols-3">
+    <div className="grid gap-4 text-xs text-stone-300 sm:grid-cols-3 sm:text-sm">
       {landingHeroStats.map((stat) => (
         <div
           key={stat.label}
           className="rounded-3xl border border-white/10 bg-white/5 p-4"
         >
-          <p className="text-3xl font-semibold text-white">{stat.value}</p>
+          <p className="text-2xl font-semibold text-white sm:text-3xl">{stat.value}</p>
           <p className="mt-2">{stat.label}</p>
         </div>
       ))}
@@ -86,16 +87,16 @@ function HeroStats() {
 
 function SessionCard() {
   return (
-    <div className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-5">
+    <div className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.03))] p-4 sm:p-5">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.35em] text-amber-200">
             Voice Session
           </p>
-          <h2 className="mt-3 text-2xl font-semibold text-white">
+          <h2 className="mt-3 text-xl font-semibold text-white sm:text-2xl">
             Japanese Basic 1
           </h2>
-          <p className="mt-2 max-w-xs text-sm leading-7 text-stone-300">
+          <p className="mt-2 max-w-xs text-sm leading-6 text-stone-300">
             Your AI tutor is guiding pronunciation, confidence, and repetition
             in one flow.
           </p>
@@ -104,12 +105,12 @@ function SessionCard() {
           Live feedback
         </div>
       </div>
-      <div className="mt-8 grid gap-4">
+      <div className="mt-6 grid gap-4">
         <div className="rounded-2xl bg-[#111817] p-4">
           <p className="text-xs uppercase tracking-[0.3em] text-stone-500">
             AI Tutor
           </p>
-          <p className="mt-2 text-lg text-white">
+          <p className="mt-2 text-base text-white sm:text-lg">
             Repeat after me: <span className="text-amber-200">Arigatou</span>
           </p>
         </div>
@@ -117,7 +118,7 @@ function SessionCard() {
           <p className="text-xs uppercase tracking-[0.3em] text-stone-500">
             Feedback
           </p>
-          <p className="mt-2 text-sm leading-7 text-stone-200">
+          <p className="mt-2 text-sm leading-6 text-stone-200">
             Meaning was correct. Slow down the last syllable and keep the
             middle vowel open. Try once more for a cleaner score.
           </p>
@@ -138,7 +139,7 @@ function MetricCard({ label, value }: { label: string; value: string }) {
       <p className="text-xs uppercase tracking-[0.25em] text-stone-500">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+      <p className="mt-2 text-xl font-semibold text-white sm:text-2xl">{value}</p>
     </div>
   );
 }
@@ -156,13 +157,13 @@ function HeroVisual() {
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden px-6 pb-18 pt-10 sm:px-10 lg:px-14">
+    <section className="relative overflow-hidden px-6 pb-16 pt-8 sm:px-10 lg:px-14">
       <div className="absolute inset-x-0 top-[-20rem] h-[34rem] bg-[radial-gradient(circle,rgba(255,188,87,0.24),transparent_55%)] blur-3xl" />
       <div className="absolute right-[-10rem] top-28 h-72 w-72 rounded-full bg-emerald-400/12 blur-3xl" />
       <div className="mx-auto max-w-7xl">
         <LandingNav />
-        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div className="space-y-8">
+        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div className="space-y-7">
             <HeroCopy />
             <HeroActions />
             <HeroStats />
@@ -185,10 +186,12 @@ function SectionHeading(props: {
       <p className="text-sm uppercase tracking-[0.35em] text-amber-200">
         {props.eyebrow}
       </p>
-      <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
+      <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
         {props.title}
       </h2>
-      <p className="mt-4 text-base leading-8 text-stone-300">{props.body}</p>
+      <p className="mt-4 text-sm leading-7 text-stone-300 sm:text-base sm:leading-8">
+        {props.body}
+      </p>
     </div>
   );
 }
@@ -281,16 +284,39 @@ function StepCard({
   );
 }
 
+function ProcessOverview() {
+  return (
+    <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
+      <p className="text-xs uppercase tracking-[0.3em] text-emerald-200">
+        Why this flow works
+      </p>
+      <div className="mt-4 space-y-3">
+        {processHighlights.map((item) => (
+          <div
+            key={item}
+            className="flex items-start gap-3 rounded-2xl border border-white/6 bg-black/15 px-4 py-3"
+          >
+            <span className="mt-1.5 h-2 w-2 rounded-full bg-amber-300" />
+            <p className="text-sm leading-6 text-stone-200">{item}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ProcessSection() {
   return (
     <section className="px-6 py-18 sm:px-10 lg:px-14">
       <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-        <SectionHeading
-          className="max-w-xl"
-          eyebrow="How It Works"
-          title="A clean funnel from premium first impression to paid language path."
-          body="We lead with style, prove speaking value quickly, then upgrade users when they already trust the certificate and the coaching loop."
-        />
+        <div className="max-w-xl space-y-6">
+          <SectionHeading
+            eyebrow="How It Works"
+            title="A clean funnel from premium first impression to paid language path."
+            body="We lead with style, prove speaking value quickly, then upgrade users when they already trust the certificate and the coaching loop."
+          />
+          <ProcessOverview />
+        </div>
         <div className="grid gap-4">
           {landingSteps.map((step, index) => (
             <StepCard

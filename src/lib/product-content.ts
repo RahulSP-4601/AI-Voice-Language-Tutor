@@ -44,6 +44,12 @@ export const landingSteps = [
   },
 ] as const;
 
+export const processHighlights = [
+  "Premium landing page establishes trust in under 10 seconds.",
+  "Google login removes friction and keeps the first conversion clean.",
+  "A focused dashboard gives users one obvious next action after auth.",
+] as const;
+
 export const landingComparison = [
   {
     title: "Speaking over memorization",
