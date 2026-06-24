@@ -3,14 +3,7 @@ import {
   CourseWorkspace,
   DashboardTopBar,
 } from "@/components/dashboard-sections";
-import {
-  dashboardCourses,
-  type DashboardCourseSlug,
-} from "@/lib/product-content";
-
-function isCourseSlug(value: string): value is DashboardCourseSlug {
-  return dashboardCourses.some((course) => course.slug === value);
-}
+import { isCourseSlug } from "@/lib/course-definitions";
 
 export default async function CoursePage({
   params,
