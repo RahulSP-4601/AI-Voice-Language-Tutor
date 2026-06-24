@@ -378,9 +378,9 @@ function LessonRunnerContent(
   >,
 ) {
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)]">
+    <div className="space-y-4">
       <StepCard currentIndex={props.currentTurn} lesson={props.lesson} />
-      <div className="space-y-4">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]">
         <PracticeCard
           lesson={props.lesson}
           moduleState={props.moduleState}

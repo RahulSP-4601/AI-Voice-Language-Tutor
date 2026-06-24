@@ -46,39 +46,87 @@ function LevelSection(props: {
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
   progressMap: Record<string, CompletionState>;
 }) {
+  const isActiveLevel = props.level.id === props.activeLevelId;
+  const completedCount = props.level.modules.filter(
+    (module) => props.progressMap[module.id] === "completed",
+  ).length;
+
   return (
     <section className="rounded-[1.45rem] border border-white/8 bg-black/20 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-base font-semibold text-white">
-            {props.level.officialLabel}
-          </p>
-          <p className="mt-1 text-xs uppercase tracking-[0.22em] text-stone-400">
-            {props.level.productLabel}
-          </p>
-        </div>
-        <span
-          className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.2em] ${
-            props.level.id === props.activeLevelId
-              ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
-              : "border-white/10 bg-white/[0.04] text-stone-400"
-          }`}
-        >
-          {props.level.modules.length} modules
-        </span>
-      </div>
-      <div className="mt-4 space-y-2">
-        {props.level.modules.map((module) => (
-          <SidebarModule
-            key={module.id}
-            module={module}
-            state={props.progressMap[module.id]}
-            isSelected={module.id === props.activeModuleId}
-            onSelect={() => props.onSelectModule(props.level, module)}
-          />
-        ))}
-      </div>
+      <LevelHeader
+        completedCount={completedCount}
+        isActiveLevel={isActiveLevel}
+        level={props.level}
+      />
+      <p className="mt-3 text-sm leading-6 text-stone-400">
+        {props.level.objective}
+      </p>
+      <LevelContent
+        activeModuleId={props.activeModuleId}
+        isActiveLevel={isActiveLevel}
+        level={props.level}
+        onSelectModule={props.onSelectModule}
+        progressMap={props.progressMap}
+      />
     </section>
+  );
+}
+
+function LevelHeader(props: {
+  completedCount: number;
+  isActiveLevel: boolean;
+  level: CourseLevel;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className="text-base font-semibold text-white">
+          {props.level.officialLabel}
+        </p>
+        <p className="mt-1 text-xs uppercase tracking-[0.22em] text-stone-400">
+          {props.level.productLabel}
+        </p>
+      </div>
+      <span
+        className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.2em] ${
+          props.isActiveLevel
+            ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
+            : "border-white/10 bg-white/[0.04] text-stone-400"
+        }`}
+      >
+        {props.completedCount}/{props.level.modules.length}
+      </span>
+    </div>
+  );
+}
+
+function LevelContent(props: {
+  activeModuleId: string;
+  isActiveLevel: boolean;
+  level: CourseLevel;
+  onSelectModule: (level: CourseLevel, module: CourseModule) => void;
+  progressMap: Record<string, CompletionState>;
+}) {
+  if (!props.isActiveLevel) {
+    return (
+      <div className="mt-4 rounded-[1.1rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-500">
+        Open this level when you are ready to continue.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 space-y-2">
+      {props.level.modules.map((module) => (
+        <SidebarModule
+          key={module.id}
+          module={module}
+          state={props.progressMap[module.id]}
+          isSelected={module.id === props.activeModuleId}
+          onSelect={() => props.onSelectModule(props.level, module)}
+        />
+      ))}
+    </div>
   );
 }
 

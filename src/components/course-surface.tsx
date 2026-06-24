@@ -41,7 +41,7 @@ function ProgressSummary(props: {
   return (
     <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
       <p className="text-xs uppercase tracking-[0.32em] text-emerald-100">
-        Learning progress
+        Trusted progress
       </p>
       <div className="mt-4 grid gap-3">
         <SummaryRow label="Current status" value={getStateLabel(props.activeState)} />
@@ -105,7 +105,7 @@ function SurfaceHeader(props: {
   return (
     <>
       <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
-        Live lesson runner
+        Japanese voice session
       </p>
       <div className="mt-5 flex flex-wrap gap-3">
         <SurfaceBadge label={props.mode} />
@@ -118,6 +118,11 @@ function SurfaceHeader(props: {
       <p className="mt-4 max-w-4xl text-base leading-8 text-stone-200">
         {props.objective}
       </p>
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <SummaryRow label="Session focus" value="Speak, listen, and respond naturally" />
+        <SummaryRow label="What builds trust" value="Scored voice feedback powered by Deepgram and OpenAI" />
+        <SummaryRow label="Why this matters" value="You practice usable Japanese instead of memorizing isolated vocabulary." />
+      </div>
     </>
   );
 }

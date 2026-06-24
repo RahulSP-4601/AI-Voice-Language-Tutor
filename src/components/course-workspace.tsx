@@ -15,10 +15,13 @@ import { countCompletedModules } from "@/lib/course-progress";
 function getDefaultSelection(slug: CourseSlug) {
   const course = courseDefinitions[slug];
   const firstLevel = course.framework.levels[0];
-  const firstModule = firstLevel.modules[0];
+  const featuredModule =
+    slug === "japanese"
+      ? firstLevel.modules.find((module) => module.id === "n5-greetings")
+      : firstLevel.modules[0];
+  const firstModule = featuredModule ?? firstLevel.modules[0];
   return { levelId: firstLevel.id, moduleId: firstModule.id };
 }
-
 
 export function CourseWorkspace(props: { activeSlug: CourseSlug }) {
   const data = useActiveCourse(props.activeSlug);
