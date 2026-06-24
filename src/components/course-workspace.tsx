@@ -22,6 +22,18 @@ function getStateLabel(state: CompletionState) {
   return "Not started";
 }
 
+function getNextActionLabel(state: CompletionState) {
+  if (state === "completed") {
+    return "Module finished. Move to the next module or reset to practice again.";
+  }
+
+  if (state === "in_progress") {
+    return "Voice session is active. Work through the speaking loop, then mark the module complete.";
+  }
+
+  return "Start this module to open the live speaking flow and begin progress tracking.";
+}
+
 function getStateClasses(state: CompletionState) {
   if (state === "completed") {
     return "border-emerald-300/30 bg-emerald-300/14 text-emerald-100";
@@ -62,6 +74,10 @@ function getLessonCountLabel(module: CourseModule) {
   return `${module.progress.totalLessons} lesson${
     module.progress.totalLessons === 1 ? "" : "s"
   }`;
+}
+
+function getVisibleTurns(moduleState: CompletionState) {
+  return moduleState === "not_started" ? 4 : 8;
 }
 
 export function CourseWorkspace(props: { activeSlug: CourseSlug }) {
@@ -253,7 +269,10 @@ function LessonSurface(props: {
         {props.module.objective}
       </p>
       <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-        <TutorLoopCard lesson={leadLesson} />
+        <TutorLoopCard
+          lesson={leadLesson}
+          moduleState={props.moduleState}
+        />
         <ProgressPanel
           course={props.course}
           level={props.level}
@@ -274,7 +293,15 @@ function SurfaceBadge(props: { label: string }) {
   );
 }
 
-function TutorLoopCard(props: { lesson: CourseModule["lessons"][number] }) {
+function TutorLoopCard(props: {
+  lesson: CourseModule["lessons"][number];
+  moduleState: CompletionState;
+}) {
+  const visibleTurns = props.lesson.turns.slice(
+    0,
+    getVisibleTurns(props.moduleState),
+  );
+
   return (
     <div className="rounded-[1.55rem] border border-white/10 bg-black/20 p-5">
       <p className="text-xs uppercase tracking-[0.32em] text-emerald-100">
@@ -284,7 +311,7 @@ function TutorLoopCard(props: { lesson: CourseModule["lessons"][number] }) {
         {props.lesson.title}
       </h2>
       <div className="mt-4 grid gap-3">
-        {props.lesson.turns.map((turn, index) => (
+        {visibleTurns.map((turn, index) => (
           <div
             key={turn.id}
             className="rounded-[1.2rem] border border-white/8 bg-white/[0.04] p-4"
@@ -302,6 +329,12 @@ function TutorLoopCard(props: { lesson: CourseModule["lessons"][number] }) {
           </div>
         ))}
       </div>
+      {props.moduleState === "not_started" ? (
+        <p className="mt-4 text-sm leading-6 text-stone-400">
+          Start the module to unlock the full guided lesson flow and completion
+          tracking.
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -334,6 +367,10 @@ function ModuleProgressCard(props: {
       </p>
       <div className="mt-4 space-y-3">
         <ProgressRow label="Status" value={getStateLabel(props.moduleState)} />
+        <ProgressRow
+          label="Next action"
+          value={getNextActionLabel(props.moduleState)}
+        />
         <ProgressRow label="Checkpoint" value={props.module.checkpointLabel} />
         <ProgressRow label="Lessons" value={getLessonCountLabel(props.module)} />
         <ProgressRow label="Support" value={props.course.nativeSupportLabel} />
