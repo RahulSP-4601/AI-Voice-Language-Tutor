@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import {
   type CompletionState,
   type CourseLesson,
   type CourseSlug,
+  type LessonEvaluation,
 } from "@/lib/course-definitions";
+import { useAudioRecorder } from "@/components/use-audio-recorder";
+import { useLessonEvaluation } from "@/components/use-lesson-evaluation";
 import { useLessonSpeech } from "@/components/use-lesson-speech";
 
 type LessonRunnerProps = {
   currentTurn: number;
   lastTranscript: string;
   lesson: CourseLesson;
+  moduleId: string;
   moduleState: CompletionState;
   onComplete: () => void;
   onStart: () => void;
@@ -76,10 +80,11 @@ function StepCard(props: {
 }
 
 function PracticeCard(props: {
-  isListening: boolean;
+  isEvaluating: boolean;
+  isRecording: boolean;
   lesson: CourseLesson;
   moduleState: CompletionState;
-  onListen: () => void;
+  onRecord: () => void;
   onPlay: () => void;
   transcript: string;
 }) {
@@ -103,24 +108,39 @@ function PracticeCard(props: {
       <div className="mt-5 flex flex-wrap gap-3">
         <LessonActionButton label="Play tutor line" onClick={props.onPlay} />
         <LessonActionButton
-          label={props.isListening ? "Listening..." : "Record my answer"}
-          muted={!props.isListening && props.moduleState === "not_started"}
-          onClick={props.onListen}
+          label={getRecordLabel(props.isEvaluating, props.isRecording)}
+          muted={props.isEvaluating || props.moduleState === "not_started"}
+          onClick={props.onRecord}
         />
       </div>
-      <div className="mt-5 rounded-2xl bg-white/[0.04] px-4 py-3">
-        <p className="text-xs uppercase tracking-[0.2em] text-stone-400">
-          Last transcript
-        </p>
-        <p className="mt-2 text-sm leading-6 text-white">
-          {props.transcript || "No voice capture yet. You can still continue manually after practicing aloud."}
-        </p>
-      </div>
+      <TranscriptPanel transcript={props.transcript} />
+    </div>
+  );
+}
+
+function getRecordLabel(isEvaluating: boolean, isRecording: boolean) {
+  if (isEvaluating) return "Scoring...";
+  if (isRecording) return "Finish recording";
+  return "Record my answer";
+}
+
+function TranscriptPanel(props: { transcript: string }) {
+  return (
+    <div className="mt-5 rounded-2xl bg-white/[0.04] px-4 py-3">
+      <p className="text-xs uppercase tracking-[0.2em] text-stone-400">
+        Last transcript
+      </p>
+      <p className="mt-2 text-sm leading-6 text-white">
+        {props.transcript ||
+          "No voice capture yet. You can still continue manually after practicing aloud."}
+      </p>
     </div>
   );
 }
 
 function FeedbackCard(props: {
+  evaluation: LessonEvaluation | null;
+  evaluationError: string;
   lesson: CourseLesson;
   transcript: string;
 }) {
@@ -136,15 +156,33 @@ function FeedbackCard(props: {
         Coaching feedback
       </p>
       <p className="mt-4 text-sm leading-7 text-stone-200">
-        {hasTranscript
+        {props.evaluationError
+          ? props.evaluationError
+          : props.evaluation
+            ? props.evaluation.coachingFeedback
+            : hasTranscript
           ? matched
             ? "Nice. Your answer is close to the lesson goal. Keep the same rhythm and move forward."
             : lessonHint(props.lesson)
           : "Practice the phrase aloud first. If browser voice capture is unavailable, continue after you speak on your own once or twice."}
       </p>
       <div className="mt-5 space-y-3">
-        <MetaRow label="Focus" value={props.lesson.feedback.focus} />
-        <MetaRow label="Retry cue" value={props.lesson.feedback.retryCue} />
+        <MetaRow
+          label="Pronunciation"
+          value={formatScore(props.evaluation?.pronunciationScore)}
+        />
+        <MetaRow
+          label="Accuracy"
+          value={formatScore(props.evaluation?.accuracyScore)}
+        />
+        <MetaRow
+          label="Fluency"
+          value={formatScore(props.evaluation?.fluencyScore)}
+        />
+        <MetaRow
+          label="Deepgram confidence"
+          value={formatConfidence(props.evaluation?.deepgramConfidence)}
+        />
       </div>
     </div>
   );
@@ -165,6 +203,14 @@ function lessonHint(lesson: CourseLesson) {
   return `${lesson.feedback.correctionStyle} Target something close to “${lesson.demoPhrase}” and try once more.`;
 }
 
+function formatScore(value: number | undefined) {
+  return typeof value === "number" ? `${value}/100` : "Pending";
+}
+
+function formatConfidence(value: number | undefined) {
+  return typeof value === "number" ? `${Math.round(value * 100)}%` : "Pending";
+}
+
 export function LessonRunner(props: LessonRunnerProps) {
   const runner = useLessonRunnerState(props);
   return <LessonRunnerBody {...props} {...runner} />;
@@ -173,37 +219,111 @@ export function LessonRunner(props: LessonRunnerProps) {
 function useLessonRunnerState(props: LessonRunnerProps) {
   const [currentTurn, setCurrentTurn] = useState(props.currentTurn);
   const [transcript, setTranscript] = useState(props.lastTranscript);
+  const recorder = useAudioRecorder();
+  const evaluation = useLessonEvaluation();
   const { isListening, playPhrase, startListening, supported } = useLessonSpeech(
     props.slug,
     setTranscript,
   );
 
-  useEffect(() => props.onTurnChange(currentTurn), [currentTurn, props]);
-  useEffect(() => props.onTranscriptChange(transcript), [props, transcript]);
+  useTurnSync(currentTurn, props.onTurnChange);
+  useTranscriptSync(transcript, props.onTranscriptChange);
+  const turnHandlers = createTurnHandlers({
+    currentTurn,
+    lesson: props.lesson,
+    onComplete: props.onComplete,
+    onStart: props.onStart,
+    setCurrentTurn,
+  });
 
-  function startLesson() {
-    props.onStart();
-    setCurrentTurn(0);
-  }
-
-  function advanceTurn() {
-    if (currentTurn >= props.lesson.turns.length - 1) {
-      props.onComplete();
-      return;
-    }
-
-    setCurrentTurn((value) => value + 1);
-  }
+  const handleRecord = createRecordHandler({
+    evaluation,
+    lesson: props.lesson,
+    moduleId: props.moduleId,
+    recorder,
+    setTranscript,
+    slug: props.slug,
+  });
 
   return {
-    advanceTurn,
+    advanceTurn: turnHandlers.advanceTurn,
     currentTurn,
+    evaluation: evaluation.evaluation,
+    evaluationError: evaluation.error,
     isListening,
+    isEvaluating: evaluation.isEvaluating,
+    isRecording: recorder.isRecording,
     playTutorLine: () => playPhrase(props.lesson.demoPhrase),
-    startLesson,
+    recordAnswer: handleRecord,
+    startLesson: turnHandlers.startLesson,
     startListening,
     supported,
     transcript,
+  };
+}
+
+function createTurnHandlers(input: {
+  currentTurn: number;
+  lesson: CourseLesson;
+  onComplete: () => void;
+  onStart: () => void;
+  setCurrentTurn: Dispatch<SetStateAction<number>>;
+}) {
+  return {
+    advanceTurn() {
+      if (input.currentTurn >= input.lesson.turns.length - 1) {
+        input.onComplete();
+        return;
+      }
+
+      input.setCurrentTurn((value) => value + 1);
+    },
+    startLesson() {
+      input.onStart();
+      input.setCurrentTurn(0);
+    },
+  };
+}
+
+function useTurnSync(
+  currentTurn: number,
+  onTurnChange: LessonRunnerProps["onTurnChange"],
+) {
+  useEffect(() => onTurnChange(currentTurn), [currentTurn, onTurnChange]);
+}
+
+function useTranscriptSync(
+  transcript: string,
+  onTranscriptChange: LessonRunnerProps["onTranscriptChange"],
+) {
+  useEffect(() => onTranscriptChange(transcript), [onTranscriptChange, transcript]);
+}
+
+function createRecordHandler(input: {
+  evaluation: ReturnType<typeof useLessonEvaluation>;
+  lesson: CourseLesson;
+  moduleId: string;
+  recorder: ReturnType<typeof useAudioRecorder>;
+  setTranscript: Dispatch<SetStateAction<string>>;
+  slug: CourseSlug;
+}) {
+  return async function handleRecord() {
+    if (!input.recorder.isRecording) {
+      await input.recorder.startRecording();
+      return;
+    }
+
+    const audioBlob = await input.recorder.stopRecording();
+    const result = await input.evaluation.evaluate({
+      audioBlob,
+      lesson: input.lesson,
+      moduleId: input.moduleId,
+      slug: input.slug,
+    });
+
+    if (result?.transcript) {
+      input.setTranscript(result.transcript);
+    }
   };
 }
 
@@ -211,8 +331,13 @@ function LessonRunnerBody(
   props: LessonRunnerProps & {
     advanceTurn: () => void;
     currentTurn: number;
+    evaluation: LessonEvaluation | null;
+    evaluationError: string;
     isListening: boolean;
+    isEvaluating: boolean;
+    isRecording: boolean;
     playTutorLine: () => void;
+    recordAnswer: () => Promise<void>;
     startLesson: () => void;
     startListening: () => void;
     supported: boolean;
@@ -224,25 +349,53 @@ function LessonRunnerBody(
       <LessonRunnerActions
         moduleState={props.moduleState}
         isListening={props.isListening}
+        isEvaluating={props.isEvaluating}
+        isRecording={props.isRecording}
         supported={props.supported}
         onAdvance={props.advanceTurn}
         onPlay={props.playTutorLine}
         onStart={props.startLesson}
-        onListen={props.startListening}
+        onListen={props.recordAnswer}
       />
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)]">
-        <StepCard currentIndex={props.currentTurn} lesson={props.lesson} />
-        <div className="space-y-4">
-          <PracticeCard
-            lesson={props.lesson}
-            moduleState={props.moduleState}
-            isListening={props.isListening}
-            onListen={props.supported ? props.startListening : props.playTutorLine}
-            onPlay={props.playTutorLine}
-            transcript={props.transcript}
-          />
-          <FeedbackCard lesson={props.lesson} transcript={props.transcript} />
-        </div>
+      <LessonRunnerContent {...props} />
+    </div>
+  );
+}
+
+function LessonRunnerContent(
+  props: Pick<
+    Parameters<typeof LessonRunnerBody>[0],
+    | "currentTurn"
+    | "evaluation"
+    | "evaluationError"
+    | "isEvaluating"
+    | "isRecording"
+    | "lesson"
+    | "moduleState"
+    | "playTutorLine"
+    | "recordAnswer"
+    | "transcript"
+  >,
+) {
+  return (
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)]">
+      <StepCard currentIndex={props.currentTurn} lesson={props.lesson} />
+      <div className="space-y-4">
+        <PracticeCard
+          lesson={props.lesson}
+          moduleState={props.moduleState}
+          isEvaluating={props.isEvaluating}
+          isRecording={props.isRecording}
+          onRecord={props.recordAnswer}
+          onPlay={props.playTutorLine}
+          transcript={props.transcript}
+        />
+        <FeedbackCard
+          lesson={props.lesson}
+          transcript={props.transcript}
+          evaluation={props.evaluation}
+          evaluationError={props.evaluationError}
+        />
       </div>
     </div>
   );
@@ -250,6 +403,8 @@ function LessonRunnerBody(
 
 function LessonRunnerActions(props: {
   isListening: boolean;
+  isEvaluating: boolean;
+  isRecording: boolean;
   moduleState: CompletionState;
   onAdvance: () => void;
   onListen: () => void;
@@ -266,8 +421,16 @@ function LessonRunnerActions(props: {
       <LessonActionButton label="Play tutor line" muted onClick={props.onPlay} />
       {props.supported ? (
         <LessonActionButton
-          label={props.isListening ? "Listening..." : "Record my answer"}
-          muted={props.isListening}
+          label={
+            props.isEvaluating
+              ? "Scoring..."
+              : props.isRecording
+                ? "Finish recording"
+                : props.isListening
+                  ? "Listening..."
+                  : "Record my answer"
+          }
+          muted={props.isEvaluating}
           onClick={props.onListen}
         />
       ) : null}

@@ -2,6 +2,7 @@ export type {
   CompletionState,
   CourseFramework,
   CourseFrameworkName,
+  LessonEvaluation,
   CourseLesson,
   CourseLevel,
   CourseModule,

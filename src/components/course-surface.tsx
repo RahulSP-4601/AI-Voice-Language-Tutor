@@ -142,6 +142,7 @@ function SurfaceContent(props: {
         key={props.module.id}
         slug={props.slug}
         lesson={props.lesson}
+        moduleId={props.module.id}
         moduleState={props.state}
         currentTurn={props.currentTurn}
         lastTranscript={props.lastTranscript}

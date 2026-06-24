@@ -37,6 +37,17 @@ export interface LessonFeedback {
   retryCue: string;
 }
 
+export interface LessonEvaluation {
+  accuracyScore: number;
+  coachingFeedback: string;
+  deepgramConfidence: number;
+  fluencyScore: number;
+  matchedExpectedPhrase: boolean;
+  pronunciationScore: number;
+  shouldAdvance: boolean;
+  transcript: string;
+}
+
 export interface CourseLesson {
   acceptableResponses: string[];
   demoPhrase: string;
