@@ -21,6 +21,13 @@ type LessonRunnerProps = {
   onStart: () => void;
   onTurnChange: (turn: number) => void;
   onTranscriptChange: (value: string) => void;
+  progressSummary: {
+    checkpoint: string;
+    completedCount: number;
+    learningGoal: string;
+    stateLabel: string;
+    totalCount: number;
+  };
   slug: CourseSlug;
 };
 
@@ -199,6 +206,25 @@ function MetaRow(props: { label: string; value: string }) {
   );
 }
 
+function TrustedProcessCard(props: { progressSummary: LessonRunnerProps["progressSummary"] }) {
+  return (
+    <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
+      <p className="text-xs uppercase tracking-[0.32em] text-emerald-100">
+        Trusted process
+      </p>
+      <div className="mt-4 grid gap-3">
+        <MetaRow label="Current status" value={props.progressSummary.stateLabel} />
+        <MetaRow
+          label="Course progress"
+          value={`${props.progressSummary.completedCount}/${props.progressSummary.totalCount} modules completed`}
+        />
+        <MetaRow label="Checkpoint" value={props.progressSummary.checkpoint} />
+        <MetaRow label="Learning goal" value={props.progressSummary.learningGoal} />
+      </div>
+    </div>
+  );
+}
+
 function lessonHint(lesson: CourseLesson) {
   return `${lesson.feedback.correctionStyle} Target something close to “${lesson.demoPhrase}” and try once more.`;
 }
@@ -373,30 +399,30 @@ function LessonRunnerContent(
     | "lesson"
     | "moduleState"
     | "playTutorLine"
+    | "progressSummary"
     | "recordAnswer"
     | "transcript"
   >,
 ) {
   return (
-    <div className="space-y-4">
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
       <StepCard currentIndex={props.currentTurn} lesson={props.lesson} />
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]">
-        <PracticeCard
-          lesson={props.lesson}
-          moduleState={props.moduleState}
-          isEvaluating={props.isEvaluating}
-          isRecording={props.isRecording}
-          onRecord={props.recordAnswer}
-          onPlay={props.playTutorLine}
-          transcript={props.transcript}
-        />
-        <FeedbackCard
-          lesson={props.lesson}
-          transcript={props.transcript}
-          evaluation={props.evaluation}
-          evaluationError={props.evaluationError}
-        />
-      </div>
+      <TrustedProcessCard progressSummary={props.progressSummary} />
+      <PracticeCard
+        lesson={props.lesson}
+        moduleState={props.moduleState}
+        isEvaluating={props.isEvaluating}
+        isRecording={props.isRecording}
+        onRecord={props.recordAnswer}
+        onPlay={props.playTutorLine}
+        transcript={props.transcript}
+      />
+      <FeedbackCard
+        lesson={props.lesson}
+        transcript={props.transcript}
+        evaluation={props.evaluation}
+        evaluationError={props.evaluationError}
+      />
     </div>
   );
 }

@@ -23,35 +23,11 @@ function SurfaceBadge(props: { label: string }) {
 
 function SummaryRow(props: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white/[0.04] px-4 py-3">
+    <div className="rounded-2xl bg-black/20 px-4 py-4">
       <p className="text-xs uppercase tracking-[0.2em] text-stone-400">
         {props.label}
       </p>
-      <p className="mt-2 text-sm leading-6 text-white">{props.value}</p>
-    </div>
-  );
-}
-
-function ProgressSummary(props: {
-  activeState: CompletionState;
-  completedCount: number;
-  module: CourseModule;
-  totalCount: number;
-}) {
-  return (
-    <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
-      <p className="text-xs uppercase tracking-[0.32em] text-emerald-100">
-        Trusted progress
-      </p>
-      <div className="mt-4 grid gap-3">
-        <SummaryRow label="Current status" value={getStateLabel(props.activeState)} />
-        <SummaryRow
-          label="Course progress"
-          value={`${props.completedCount}/${props.totalCount} modules completed`}
-        />
-        <SummaryRow label="Checkpoint" value={props.module.checkpointLabel} />
-        <SummaryRow label="Learning goal" value={props.module.objective} />
-      </div>
+      <p className="mt-3 text-sm leading-7 text-white">{props.value}</p>
     </div>
   );
 }
@@ -142,7 +118,7 @@ function SurfaceContent(props: {
   totalCount: number;
 }) {
   return (
-    <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.75fr)]">
+    <div className="mt-8">
       <LessonRunner
         key={props.module.id}
         slug={props.slug}
@@ -155,12 +131,13 @@ function SurfaceContent(props: {
         onTurnChange={props.onTurnChange}
         onTranscriptChange={props.onTranscriptChange}
         onComplete={props.onComplete}
-      />
-      <ProgressSummary
-        activeState={props.state}
-        completedCount={props.completedCount}
-        totalCount={props.totalCount}
-        module={props.module}
+        progressSummary={{
+          checkpoint: props.module.checkpointLabel,
+          completedCount: props.completedCount,
+          learningGoal: props.module.objective,
+          stateLabel: getStateLabel(props.state),
+          totalCount: props.totalCount,
+        }}
       />
     </div>
   );
