@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -156,7 +155,6 @@ function useCloseOnOutsideClick(
 export function DashboardAccountMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const envReady = hasSupabaseEnv();
   const account = useAccountState(envReady);
   const summary = useMemo(
@@ -172,8 +170,8 @@ export function DashboardAccountMenu() {
       await supabase.auth.signOut();
     }
 
-    router.push("/");
-    router.refresh();
+    setIsOpen(false);
+    window.location.replace("/auth");
   }
 
   return (
