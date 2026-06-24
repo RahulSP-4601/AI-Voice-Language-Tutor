@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Voice Tutor",
-  description: "Next.js and Supabase starter for an AI voice tutor app.",
+  title: "AI Voice Language Tutor",
+  description:
+    "Premium voice-first language learning with Google auth, free certificates, and bundled language paths.",
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }
