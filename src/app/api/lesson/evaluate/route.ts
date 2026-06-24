@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       slug,
     });
 
-    return NextResponse.json(buildLessonEvaluation(deepgram, scorecard));
+    return NextResponse.json(buildLessonEvaluation(deepgram, scorecard, lesson));
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Lesson evaluation failed.";

@@ -6,6 +6,13 @@ type DeepgramResult = {
 };
 
 type OpenAiScorecard = Omit<LessonEvaluation, "deepgramConfidence" | "transcript">;
+type ScoreBand = {
+  accuracyScore: number;
+  fluencyScore: number;
+  matchedExpectedPhrase: boolean;
+  pronunciationScore: number;
+  shouldAdvance: boolean;
+};
 
 function getLanguageLabel(slug: CourseSlug) {
   if (slug === "japanese") return "Japanese";
@@ -103,8 +110,18 @@ function buildOpenAiBody(input: {
     messages: [
       {
         role: "system",
-        content:
-          "You score language-learning speech attempts. Return JSON only with pronunciationScore, accuracyScore, fluencyScore, coachingFeedback, matchedExpectedPhrase, shouldAdvance.",
+        content: [
+          "You are a strict but encouraging speaking evaluator for a premium language-learning product.",
+          "Return JSON only with pronunciationScore, accuracyScore, fluencyScore, coachingFeedback, matchedExpectedPhrase, shouldAdvance.",
+          "Scores must feel professional and stable, not random.",
+          "Use this scale:",
+          "85-100: clear, natural, and target-faithful.",
+          "70-84: understandable with minor issues.",
+          "50-69: partly correct but noticeable mistakes.",
+          "0-49: target missed significantly.",
+          "Do not give extreme low scores for near-correct beginner attempts.",
+          "Coaching feedback must be short, specific, and professional.",
+        ].join(" "),
       },
       {
         role: "user",
@@ -147,10 +164,144 @@ function clampScore(value: number | undefined) {
 export function buildLessonEvaluation(
   deepgram: DeepgramResult,
   scorecard: OpenAiScorecard,
+  lesson?: Pick<CourseLesson, "acceptableResponses" | "demoPhrase">,
 ) {
+  const calibrated = lesson
+    ? calibrateScorecard(scorecard, deepgram, lesson)
+    : scorecard;
+
   return {
-    ...scorecard,
+    ...calibrated,
     deepgramConfidence: Number(deepgram.confidence.toFixed(2)),
     transcript: deepgram.transcript,
   } satisfies LessonEvaluation;
+}
+
+function calibrateScorecard(
+  scorecard: OpenAiScorecard,
+  deepgram: DeepgramResult,
+  lesson: Pick<CourseLesson, "acceptableResponses" | "demoPhrase">,
+) {
+  const band = getScoreBand(deepgram.transcript, deepgram.confidence, lesson);
+  return {
+    accuracyScore: Math.max(scorecard.accuracyScore, band.accuracyScore),
+    coachingFeedback: scorecard.coachingFeedback,
+    fluencyScore: Math.max(scorecard.fluencyScore, band.fluencyScore),
+    matchedExpectedPhrase:
+      scorecard.matchedExpectedPhrase || band.matchedExpectedPhrase,
+    pronunciationScore: Math.max(
+      scorecard.pronunciationScore,
+      band.pronunciationScore,
+    ),
+    shouldAdvance: scorecard.shouldAdvance || band.shouldAdvance,
+  } satisfies OpenAiScorecard;
+}
+
+function getScoreBand(
+  transcript: string,
+  confidence: number,
+  lesson: Pick<CourseLesson, "acceptableResponses" | "demoPhrase">,
+) {
+  if (!transcript.trim()) {
+    return emptyScoreBand();
+  }
+
+  const similarity = getBestSimilarity(transcript, [
+    lesson.demoPhrase,
+    ...lesson.acceptableResponses,
+  ]);
+  const blended = similarity * 0.85 + Math.max(confidence, 0.35) * 0.15;
+
+  if (blended >= 0.9) {
+    return createScoreBand(90, 92, 86, true, true);
+  }
+
+  if (blended >= 0.78) {
+    return createScoreBand(78, 82, 72, true, true);
+  }
+
+  if (blended >= 0.62) {
+    return createScoreBand(66, 70, 62, true, false);
+  }
+
+  if (blended >= 0.45) {
+    return createScoreBand(52, 56, 50, false, false);
+  }
+
+  return emptyScoreBand();
+}
+
+function emptyScoreBand() {
+  return createScoreBand(0, 0, 0, false, false);
+}
+
+function createScoreBand(
+  pronunciationScore: number,
+  accuracyScore: number,
+  fluencyScore: number,
+  matchedExpectedPhrase: boolean,
+  shouldAdvance: boolean,
+) {
+  return {
+    accuracyScore,
+    fluencyScore,
+    matchedExpectedPhrase,
+    pronunciationScore,
+    shouldAdvance,
+  } satisfies ScoreBand;
+}
+
+function getBestSimilarity(transcript: string, candidates: string[]) {
+  const normalizedTranscript = normalizeComparableText(transcript);
+  return candidates.reduce((best, candidate) => {
+    const similarity = getPhraseSimilarity(
+      normalizedTranscript,
+      normalizeComparableText(candidate),
+    );
+    return Math.max(best, similarity);
+  }, 0);
+}
+
+function getPhraseSimilarity(source: string, target: string) {
+  if (!source || !target) return 0;
+  if (source === target) return 1;
+  if (source.includes(target) || target.includes(source)) return 0.88;
+  const sourceTokens = source.split(" ");
+  const targetTokens = target.split(" ");
+  const sharedTokens = sourceTokens.filter((token) => targetTokens.includes(token));
+  const tokenScore = sharedTokens.length / Math.max(sourceTokens.length, targetTokens.length, 1);
+  const bigramScore = getBigramScore(source, target);
+  return Number(((tokenScore * 0.55) + (bigramScore * 0.45)).toFixed(2));
+}
+
+function normalizeComparableText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getBigramScore(source: string, target: string) {
+  const sourceBigrams = toBigrams(source);
+  const targetBigrams = toBigrams(target);
+
+  if (!sourceBigrams.length || !targetBigrams.length) {
+    return 0;
+  }
+
+  const targetSet = new Set(targetBigrams);
+  const matches = sourceBigrams.filter((value) => targetSet.has(value)).length;
+  return (2 * matches) / (sourceBigrams.length + targetBigrams.length);
+}
+
+function toBigrams(value: string) {
+  if (value.length < 2) {
+    return [value];
+  }
+
+  const compact = value.replace(/\s+/g, " ");
+  return Array.from({ length: compact.length - 1 }, (_, index) =>
+    compact.slice(index, index + 2),
+  );
 }

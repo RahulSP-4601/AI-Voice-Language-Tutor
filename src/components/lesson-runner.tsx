@@ -186,10 +186,6 @@ function FeedbackCard(props: {
           label="Fluency"
           value={formatScore(props.evaluation?.fluencyScore)}
         />
-        <MetaRow
-          label="Deepgram confidence"
-          value={formatConfidence(props.evaluation?.deepgramConfidence)}
-        />
       </div>
     </div>
   );
@@ -231,10 +227,6 @@ function lessonHint(lesson: CourseLesson) {
 
 function formatScore(value: number | undefined) {
   return typeof value === "number" ? `${value}/100` : "Pending";
-}
-
-function formatConfidence(value: number | undefined) {
-  return typeof value === "number" ? `${Math.round(value * 100)}%` : "Pending";
 }
 
 export function LessonRunner(props: LessonRunnerProps) {

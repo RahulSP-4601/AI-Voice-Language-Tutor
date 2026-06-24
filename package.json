@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --incremental false",
     "guardian": "sh ./scripts/guardian.sh",
     "guardian:static": "node ./scripts/guardian-static.mjs",
     "guardian:functional": "node ./scripts/guardian-functional.mjs",

@@ -21,17 +21,6 @@ function SurfaceBadge(props: { label: string }) {
   );
 }
 
-function SummaryRow(props: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-black/20 px-4 py-4">
-      <p className="text-xs uppercase tracking-[0.2em] text-stone-400">
-        {props.label}
-      </p>
-      <p className="mt-3 text-sm leading-7 text-white">{props.value}</p>
-    </div>
-  );
-}
-
 export function CourseSurface(props: {
   activeState: CompletionState;
   completedCount: number;
@@ -94,11 +83,6 @@ function SurfaceHeader(props: {
       <p className="mt-4 max-w-4xl text-base leading-8 text-stone-200">
         {props.objective}
       </p>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <SummaryRow label="Session focus" value="Speak, listen, and respond naturally" />
-        <SummaryRow label="What builds trust" value="Scored voice feedback powered by Deepgram and OpenAI" />
-        <SummaryRow label="Why this matters" value="You practice usable Japanese instead of memorizing isolated vocabulary." />
-      </div>
     </>
   );
 }
