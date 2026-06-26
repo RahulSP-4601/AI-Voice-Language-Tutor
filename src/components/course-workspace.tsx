@@ -126,7 +126,6 @@ function buildCourseWorkspaceState(input: {
     activeProgress,
     completedCount: countCompletedModules(input.progress),
     courseResources: input.course.resources,
-    courseFramework: input.course.framework.name,
     levelLabel: activeLevel.officialLabel,
     onComplete: () => completeModule(updateActiveModule),
     onSelectModule: (level: CourseLevel, module: CourseModule) =>

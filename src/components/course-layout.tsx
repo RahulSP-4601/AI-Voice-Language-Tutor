@@ -13,26 +13,65 @@ import {
 } from "@/lib/course-definitions";
 
 function LearningIntro(props: {
+  activeModule: CourseModule;
   completedCount: number;
-  courseResources?: LanguageCourseResources;
-  courseFramework: string;
+  course: LanguageCourseDefinition;
   levelLabel: string;
   totalCount: number;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+      <CourseBriefing {...props} />
+      <CurrentMissionCard activeModule={props.activeModule} />
+    </div>
+  );
+}
+
+function CourseBriefing(props: {
+  completedCount: number;
+  course: LanguageCourseDefinition;
+  levelLabel: string;
+  totalCount: number;
+}) {
+  return (
+    <div className="rounded-[1.7rem] border border-white/10 bg-[linear-gradient(135deg,rgba(247,200,116,0.12),rgba(255,255,255,0.03))] p-6">
       <p className="text-xs uppercase tracking-[0.32em] text-amber-100">
-        How learning works
+        Course Briefing
       </p>
-      <p className="mt-3 text-sm leading-7 text-stone-200">
-        Choose a module, start the lesson, listen to the tutor phrase, say it
-        out loud, record yourself if your browser supports it, and move through
-        the guided steps until the module is complete.
+      <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
+        {props.course.name} {props.levelLabel} is built to be spoken, not just
+        memorized.
+      </h2>
+      <p className="mt-4 max-w-3xl text-base leading-8 text-stone-200">
+        {props.course.heroSummary}
       </p>
-      <div className="mt-4 flex flex-wrap gap-3">
+      <div className="mt-5 flex flex-wrap gap-3">
         <IntroBadge label={`${props.completedCount}/${props.totalCount} modules done`} />
-        <IntroBadge label={props.levelLabel} />
-        <IntroBadge label={props.courseFramework} />
+        <IntroBadge label={props.course.framework.name} />
+        <IntroBadge label={props.course.lessonDuration} />
+      </div>
+    </div>
+  );
+}
+
+function CurrentMissionCard(props: { activeModule: CourseModule }) {
+  return (
+    <div className="rounded-[1.7rem] border border-white/10 bg-black/20 p-6">
+      <p className="text-xs uppercase tracking-[0.32em] text-emerald-100">
+        Current Mission
+      </p>
+      <h3 className="mt-4 text-2xl font-semibold text-white">
+        {props.activeModule.title}
+      </h3>
+      <p className="mt-3 text-sm leading-7 text-stone-300">
+        {props.activeModule.supportLanguageHint}
+      </p>
+      <div className="mt-5 grid gap-3">
+        <IntroBadge label={props.activeModule.checkpointLabel} />
+        <IntroBadge label={`${props.activeModule.reward.xp} xp reward`} />
+        <IntroBadge
+          label={`${props.activeModule.progress.totalLessons} lesson mission`}
+        />
       </div>
     </div>
   );
@@ -57,7 +96,6 @@ export function CourseLayout(props: {
   };
   completedCount: number;
   course: LanguageCourseDefinition;
-  courseFramework: string;
   courseResources?: LanguageCourseResources;
   levelLabel: string;
   onComplete: () => void;
@@ -92,10 +130,11 @@ function CourseLayoutMain(
   return (
     <section className="space-y-4">
       <LearningIntro
+        activeModule={props.activeModule}
         completedCount={props.completedCount}
+        course={props.course}
         totalCount={props.totalCount}
         levelLabel={props.levelLabel}
-        courseFramework={props.courseFramework}
       />
       <CourseSurface
         course={props.course}
