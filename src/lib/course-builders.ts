@@ -25,6 +25,21 @@ function createLessonTurns(seed: VoiceLessonSeed): LessonTurn[] {
   }));
 }
 
+function buildExperience(seed: VoiceLessonSeed) {
+  return {
+    coverage: seed.coverage ?? [seed.pattern, seed.replyPrompt, seed.checkpointLabel],
+    missionTitle: seed.missionTitle ?? seed.title,
+    storyHook: seed.storyHook ?? seed.objective,
+  };
+}
+
+function buildReward(seed: VoiceLessonSeed) {
+  return {
+    badge: seed.rewardBadge ?? `${seed.title} Badge`,
+    xp: seed.rewardXp ?? 10,
+  };
+}
+
 function createFeedback() {
   return {
     focus: "Pronunciation, clarity, and response confidence",
@@ -54,6 +69,7 @@ export function createModule(seed: VoiceLessonSeed): CourseModule {
   const lessons = [createTutorLoopLesson(seed)];
 
   return {
+    experience: buildExperience(seed),
     id: seed.id,
     title: seed.title,
     objective: seed.objective,
@@ -65,6 +81,8 @@ export function createModule(seed: VoiceLessonSeed): CourseModule {
       completedLessons: seed.state === "completed" ? 1 : 0,
       totalLessons: 1,
     },
+    resourceLinks: seed.resourceLinks,
+    reward: buildReward(seed),
     lessons,
   };
 }
@@ -130,6 +148,11 @@ export function createPlaceholderLevel(input: {
         modelPrompt: `The AI previews what ${input.officialLabel} speaking feels like in short phrases and live responses.`,
         guidedPrompt: "Ask the learner one simple readiness question and one short spoken reply.",
         checkpoint: "Confirm the learner is ready for the next speaking path.",
+        coverage: ["Level preview", "Future speaking goals", "Roleplay expectations"],
+        missionTitle: "Preview the next level before unlocking it",
+        rewardBadge: "Roadmap Ready",
+        rewardXp: 10,
+        storyHook: "Peek at the next Japan mission so you know what stronger speaking will unlock.",
       }),
     ],
   });

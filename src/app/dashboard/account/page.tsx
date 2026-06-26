@@ -1,8 +1,8 @@
 import {
-  AccountSummary,
   DashboardCourseTabs,
   DashboardTopBar,
 } from "@/components/dashboard-sections";
+import { AccountSummaryPanel } from "@/components/account-summary-panel";
 
 export default function AccountPage() {
   return (
@@ -10,7 +10,7 @@ export default function AccountPage() {
       <div className="mx-auto max-w-7xl space-y-8">
         <DashboardTopBar />
         <DashboardCourseTabs />
-        <AccountSummary />
+        <AccountSummaryPanel />
       </div>
     </main>
   );

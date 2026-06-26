@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { courseDefinitions, type CourseSlug } from "@/lib/course-definitions";
+import {
+  courseSlugs,
+  type CourseLesson,
+  type CourseSlug,
+} from "@/lib/course-definitions";
+import { loadCourseDefinition } from "@/lib/course-loader";
 import { getLessonAiEnv } from "@/lib/lesson-ai-env";
 import {
   buildLessonEvaluation,
@@ -7,61 +12,105 @@ import {
   transcribeWithDeepgram,
 } from "@/lib/lesson-evaluation";
 
+type LessonLookupError = "course_unavailable" | "lesson_not_found";
+type LessonLookupResult =
+  | { error: LessonLookupError }
+  | { lesson: CourseLesson };
+
 function isCourseSlug(value: string): value is CourseSlug {
-  return value in courseDefinitions;
+  return courseSlugs.includes(value as CourseSlug);
 }
 
-function findLesson(input: {
+async function findLesson(input: {
   lessonId: string;
   moduleId: string;
   slug: CourseSlug;
-}) {
-  const course = courseDefinitions[input.slug];
+}): Promise<LessonLookupResult> {
+  const course = await loadCourseDefinition(input.slug);
+  if (!course) {
+    return { error: "course_unavailable" } as const;
+  }
+
   const courseModule = course.framework.levels
     .flatMap((level) => level.modules)
     .find((item) => item.id === input.moduleId);
 
-  return (
-    courseModule?.lessons.find((lesson) => lesson.id === input.lessonId) ?? null
+  const lesson =
+    courseModule?.lessons.find((item) => item.id === input.lessonId) ?? null;
+
+  if (!lesson) {
+    return { error: "lesson_not_found" } as const;
+  }
+
+  return { lesson } as const;
+}
+
+async function parseEvaluationRequest(request: Request) {
+  const formData = await request.formData();
+  const slug = String(formData.get("slug") ?? "");
+  const moduleId = String(formData.get("moduleId") ?? "");
+  const lessonId = String(formData.get("lessonId") ?? "");
+  const audioFile = formData.get("audio");
+
+  if (!isCourseSlug(slug) || !(audioFile instanceof File)) {
+    return { errorResponse: invalidRequestResponse() } as const;
+  }
+
+  return { audioFile, lessonId, moduleId, slug } as const;
+}
+
+function invalidRequestResponse() {
+  return NextResponse.json(
+    { error: "Invalid lesson evaluation request." },
+    { status: 400 },
   );
+}
+
+function lookupErrorResponse(error: LessonLookupError) {
+  if (error === "course_unavailable") {
+    return NextResponse.json(
+      { error: "Course data is not available from the database yet." },
+      { status: 503 },
+    );
+  }
+
+  return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
+}
+
+function hasLookupError(lookup: LessonLookupResult) {
+  return "error" in lookup;
 }
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
-    const slug = String(formData.get("slug") ?? "");
-    const moduleId = String(formData.get("moduleId") ?? "");
-    const lessonId = String(formData.get("lessonId") ?? "");
-    const audioFile = formData.get("audio");
-
-    if (!isCourseSlug(slug) || !(audioFile instanceof File)) {
-      return NextResponse.json(
-        { error: "Invalid lesson evaluation request." },
-        { status: 400 },
-      );
+    const parsed = await parseEvaluationRequest(request);
+    if ("errorResponse" in parsed) {
+      return parsed.errorResponse;
     }
 
-    const lesson = findLesson({ lessonId, moduleId, slug });
-    if (!lesson) {
-      return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
+    const lookup = await findLesson(parsed);
+    if (hasLookupError(lookup)) {
+      return lookupErrorResponse(lookup.error);
     }
 
     const env = getLessonAiEnv();
     const deepgram = await transcribeWithDeepgram({
-      audioBuffer: await audioFile.arrayBuffer(),
-      contentType: audioFile.type || "audio/webm",
+      audioBuffer: await parsed.audioFile.arrayBuffer(),
+      contentType: parsed.audioFile.type || "audio/webm",
       deepgramKey: env.deepgramKey,
       deepgramModel: env.deepgramModel,
     });
     const scorecard = await scoreLessonWithOpenAi({
       deepgram,
-      lesson,
+      lesson: lookup.lesson,
       openAiKey: env.openAiKey,
       openAiModel: env.openAiModel,
-      slug,
+      slug: parsed.slug,
     });
 
-    return NextResponse.json(buildLessonEvaluation(deepgram, scorecard, lesson));
+    return NextResponse.json(
+      buildLessonEvaluation(deepgram, scorecard, lookup.lesson),
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Lesson evaluation failed.";

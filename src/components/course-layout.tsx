@@ -1,16 +1,20 @@
 "use client";
 
 import { CourseSidebar } from "@/components/course-sidebar";
+import { CourseStudyBank } from "@/components/course-study-bank";
 import { CourseSurface } from "@/components/course-surface";
 import {
   type CompletionState,
   type CourseLevel,
+  type LanguageCourseDefinition,
+  type LanguageCourseResources,
   type CourseModule,
   type CourseSlug,
 } from "@/lib/course-definitions";
 
 function LearningIntro(props: {
   completedCount: number;
+  courseResources?: LanguageCourseResources;
   courseFramework: string;
   levelLabel: string;
   totalCount: number;
@@ -52,7 +56,9 @@ export function CourseLayout(props: {
     state: CompletionState;
   };
   completedCount: number;
+  course: LanguageCourseDefinition;
   courseFramework: string;
+  courseResources?: LanguageCourseResources;
   levelLabel: string;
   onComplete: () => void;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
@@ -66,7 +72,7 @@ export function CourseLayout(props: {
   return (
     <section className="grid gap-6 lg:grid-cols-[0.3fr_0.7fr]">
       <CourseSidebar
-        slug={props.slug}
+        course={props.course}
         activeLevelId={props.activeLevelId}
         activeModuleId={props.activeModuleId}
         progressMap={props.progressMap}
@@ -92,6 +98,7 @@ function CourseLayoutMain(
         courseFramework={props.courseFramework}
       />
       <CourseSurface
+        course={props.course}
         slug={props.slug}
         module={props.activeModule}
         activeState={props.activeProgress.state}
@@ -103,6 +110,10 @@ function CourseLayoutMain(
         onTranscriptChange={props.onTranscriptChange}
         onComplete={props.onComplete}
         totalCount={props.totalCount}
+      />
+      <CourseStudyBank
+        module={props.activeModule}
+        resources={props.courseResources}
       />
     </section>
   );

@@ -2,48 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAccountProfile } from "@/components/use-account-profile";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-
-type AccountState = {
-  email: string;
-  initials: string;
-  name: string;
-};
-
-function fallbackAccount(): AccountState {
-  return {
-    email: "No session email",
-    initials: "RP",
-    name: "Rahul Panchal",
-  };
-}
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
-function buildAccountState(user: {
-  email?: string;
-  user_metadata?: { full_name?: string; name?: string };
-}) {
-  const name =
-    user.user_metadata?.full_name ??
-    user.user_metadata?.name ??
-    user.email ??
-    fallbackAccount().name;
-
-  return {
-    email: user.email ?? fallbackAccount().email,
-    initials: getInitials(name) || fallbackAccount().initials,
-    name,
-  };
-}
 
 function MenuLink(props: { href: string; label: string; sublabel: string }) {
   return (
@@ -118,24 +79,6 @@ function AccountPanel(props: {
   );
 }
 
-function useAccountState(envReady: boolean) {
-  const [account, setAccount] = useState<AccountState>(fallbackAccount());
-  useEffect(() => {
-    if (!envReady) {
-      return undefined;
-    }
-
-    const supabase = getSupabaseBrowserClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setAccount(buildAccountState(data.user));
-      }
-    });
-  }, [envReady]);
-
-  return account;
-}
-
 function useCloseOnOutsideClick(
   menuRef: React.RefObject<HTMLDivElement | null>,
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
@@ -156,7 +99,7 @@ export function DashboardAccountMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const envReady = hasSupabaseEnv();
-  const account = useAccountState(envReady);
+  const { profile: account } = useAccountProfile();
   const summary = useMemo(
     () => ({ initials: account.initials, name: account.name }),
     [account],

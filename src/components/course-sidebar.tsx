@@ -1,11 +1,10 @@
 "use client";
 
 import {
-  courseDefinitions,
   type CompletionState,
   type CourseLevel,
   type CourseModule,
-  type CourseSlug,
+  type LanguageCourseDefinition,
 } from "@/lib/course-definitions";
 
 function SidebarModule(props: {
@@ -133,22 +132,20 @@ function LevelContent(props: {
 export function CourseSidebar(props: {
   activeLevelId: string;
   activeModuleId: string;
+  course: LanguageCourseDefinition;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
   progressMap: Record<string, CompletionState>;
-  slug: CourseSlug;
 }) {
-  const course = courseDefinitions[props.slug];
-
   return (
     <aside className="rounded-[1.9rem] border border-white/10 bg-white/[0.04] p-5">
       <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
-        {course.name}
+        {props.course.name}
       </p>
       <p className="mt-2 text-sm text-stone-400">
-        {course.framework.name} speaking path
+        {props.course.framework.name} speaking path
       </p>
       <div className="mt-6 space-y-4">
-        {course.framework.levels.map((level) => (
+        {props.course.framework.levels.map((level) => (
           <LevelSection
             key={level.id}
             level={level}
