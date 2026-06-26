@@ -55,7 +55,11 @@ export function useLessonSpeech(
   }, [SpeechRecognitionCtor, onTranscript, slug]);
 
   function startListening() {
-    recognitionRef.current?.start();
+    if (!recognitionRef.current) {
+      return;
+    }
+
+    recognitionRef.current.start();
     setIsListening(true);
   }
 

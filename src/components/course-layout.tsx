@@ -11,67 +11,28 @@ import {
   type CourseModule,
   type CourseSlug,
 } from "@/lib/course-definitions";
+import { type StoredPracticeItemProgress } from "@/lib/course-progress";
 
 function LearningIntro(props: {
-  activeModule: CourseModule;
   completedCount: number;
   course: LanguageCourseDefinition;
   levelLabel: string;
   totalCount: number;
 }) {
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-      <CourseBriefing {...props} />
-      <CurrentMissionCard activeModule={props.activeModule} />
-    </div>
-  );
-}
-
-function CourseBriefing(props: {
-  completedCount: number;
-  course: LanguageCourseDefinition;
-  levelLabel: string;
-  totalCount: number;
-}) {
-  return (
-    <div className="rounded-[1.7rem] border border-white/10 bg-[linear-gradient(135deg,rgba(247,200,116,0.12),rgba(255,255,255,0.03))] p-6">
+    <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
       <p className="text-xs uppercase tracking-[0.32em] text-amber-100">
-        Course Briefing
+        Live Course
       </p>
-      <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
-        {props.course.name} {props.levelLabel} is built to be spoken, not just
-        memorized.
-      </h2>
-      <p className="mt-4 max-w-3xl text-base leading-8 text-stone-200">
-        {props.course.heroSummary}
+      <p className="mt-3 max-w-4xl text-sm leading-7 text-stone-200">
+        Learn {props.course.name} by hearing the word, understanding its
+        meaning in English, speaking it aloud, and saving your progress as you
+        go.
       </p>
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="mt-4 flex flex-wrap gap-3">
+        <IntroBadge label={props.levelLabel} />
         <IntroBadge label={`${props.completedCount}/${props.totalCount} modules done`} />
-        <IntroBadge label={props.course.framework.name} />
         <IntroBadge label={props.course.lessonDuration} />
-      </div>
-    </div>
-  );
-}
-
-function CurrentMissionCard(props: { activeModule: CourseModule }) {
-  return (
-    <div className="rounded-[1.7rem] border border-white/10 bg-black/20 p-6">
-      <p className="text-xs uppercase tracking-[0.32em] text-emerald-100">
-        Current Mission
-      </p>
-      <h3 className="mt-4 text-2xl font-semibold text-white">
-        {props.activeModule.title}
-      </h3>
-      <p className="mt-3 text-sm leading-7 text-stone-300">
-        {props.activeModule.supportLanguageHint}
-      </p>
-      <div className="mt-5 grid gap-3">
-        <IntroBadge label={props.activeModule.checkpointLabel} />
-        <IntroBadge label={`${props.activeModule.reward.xp} xp reward`} />
-        <IntroBadge
-          label={`${props.activeModule.progress.totalLessons} lesson mission`}
-        />
       </div>
     </div>
   );
@@ -86,12 +47,14 @@ function IntroBadge(props: { label: string }) {
 }
 
 export function CourseLayout(props: {
+  activeLevelCompletedCount: number;
   activeLevelId: string;
   activeModule: CourseModule;
   activeModuleId: string;
   activeProgress: {
     currentTurn: number;
     lastTranscript: string;
+    practiceItems: Record<string, StoredPracticeItemProgress>;
     state: CompletionState;
   };
   completedCount: number;
@@ -99,6 +62,7 @@ export function CourseLayout(props: {
   courseResources?: LanguageCourseResources;
   levelLabel: string;
   onComplete: () => void;
+  onPracticeItemChange: (itemId: string, value: StoredPracticeItemProgress) => void;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
   onStart: () => void;
   onTranscriptChange: (value: string) => void;
@@ -130,18 +94,18 @@ function CourseLayoutMain(
   return (
     <section className="space-y-4">
       <LearningIntro
-        activeModule={props.activeModule}
-        completedCount={props.completedCount}
+        completedCount={props.activeLevelCompletedCount}
         course={props.course}
         totalCount={props.totalCount}
         levelLabel={props.levelLabel}
       />
       <CourseSurface
         course={props.course}
+        courseResources={props.courseResources}
         slug={props.slug}
         module={props.activeModule}
         activeState={props.activeProgress.state}
-        completedCount={props.completedCount}
+        completedCount={props.activeLevelCompletedCount}
         currentTurn={props.activeProgress.currentTurn}
         lastTranscript={props.activeProgress.lastTranscript}
         onStart={props.onStart}
@@ -152,7 +116,10 @@ function CourseLayoutMain(
       />
       <CourseStudyBank
         module={props.activeModule}
+        onPracticeItemChange={props.onPracticeItemChange}
+        practiceItems={props.activeProgress.practiceItems}
         resources={props.courseResources}
+        slug={props.slug}
       />
     </section>
   );

@@ -22,7 +22,6 @@ type LessonRunnerProps = {
   onTurnChange: (turn: number) => void;
   onTranscriptChange: (value: string) => void;
   progressSummary: {
-    checkpoint: string;
     completedCount: number;
     learningGoal: string;
     stateLabel: string;
@@ -214,7 +213,6 @@ function TrustedProcessCard(props: { progressSummary: LessonRunnerProps["progres
           label="Course progress"
           value={`${props.progressSummary.completedCount}/${props.progressSummary.totalCount} modules completed`}
         />
-        <MetaRow label="Checkpoint" value={props.progressSummary.checkpoint} />
         <MetaRow label="Learning goal" value={props.progressSummary.learningGoal} />
       </div>
     </div>

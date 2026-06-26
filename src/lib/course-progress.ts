@@ -1,25 +1,43 @@
 import { type CompletionState, type LanguageCourseDefinition } from "@/lib/course-definitions";
 
-type StoredModuleProgress = {
+export type StoredPracticeItemProgress = {
+  done: boolean;
+  lastScore: number | null;
+  lastTranscript: string;
+  practicedAt: string | null;
+};
+
+export type StoredModuleProgress = {
   completedAt: string | null;
   currentTurn: number;
   lastTranscript: string;
+  practiceItems: Record<string, StoredPracticeItemProgress>;
   sessionsStarted: number;
   state: CompletionState;
 };
 
 export type StoredCourseProgress = {
   modules: Record<string, StoredModuleProgress>;
-  version: 1;
+  version: 2;
 };
 
-const STORAGE_VERSION = 1;
+const STORAGE_VERSION = 2;
+
+function createPracticeItemProgress() {
+  return {
+    done: false,
+    lastScore: null,
+    lastTranscript: "",
+    practicedAt: null,
+  } satisfies StoredPracticeItemProgress;
+}
 
 function createModuleProgress() {
   return {
     completedAt: null,
     currentTurn: 0,
     lastTranscript: "",
+    practiceItems: {},
     sessionsStarted: 0,
     state: "not_started",
   } satisfies StoredModuleProgress;
@@ -51,21 +69,63 @@ export function loadCourseProgress(
   }
 
   try {
-    const parsed = JSON.parse(storageValue) as StoredCourseProgress;
-    if (parsed.version !== STORAGE_VERSION || !parsed.modules) {
+    const parsed = JSON.parse(storageValue) as {
+      modules?: Record<string, Partial<StoredModuleProgress>>;
+      version?: number;
+    };
+    if (!parsed.modules) {
       return fallback;
     }
 
     return {
       ...fallback,
-      modules: {
-        ...fallback.modules,
-        ...parsed.modules,
-      },
+      modules: mergeStoredModules(fallback.modules, parsed.modules),
     };
   } catch {
     return fallback;
   }
+}
+
+function mergeStoredModules(
+  fallback: Record<string, StoredModuleProgress>,
+  stored: Record<string, Partial<StoredModuleProgress>>,
+) {
+  return Object.fromEntries(
+    Object.entries(fallback).map(([moduleId, fallbackModule]) => [
+      moduleId,
+      mergeModuleProgress(fallbackModule, stored[moduleId]),
+    ]),
+  );
+}
+
+function mergeModuleProgress(
+  fallback: StoredModuleProgress,
+  stored?: Partial<StoredModuleProgress>,
+) {
+  if (!stored) {
+    return fallback;
+  }
+
+  return {
+    ...fallback,
+    ...stored,
+    practiceItems: mergePracticeItems(stored.practiceItems),
+  } satisfies StoredModuleProgress;
+}
+
+function mergePracticeItems(
+  stored?: Record<string, Partial<StoredPracticeItemProgress>>,
+) {
+  if (!stored) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(stored).map(([itemId, value]) => [
+      itemId,
+      { ...createPracticeItemProgress(), ...value },
+    ]),
+  );
 }
 
 export function saveCourseProgress(

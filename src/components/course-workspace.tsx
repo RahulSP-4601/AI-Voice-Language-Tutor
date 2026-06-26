@@ -7,13 +7,16 @@ import { useCourseDefinition } from "@/components/use-course-definition";
 import { useCourseProgress } from "@/components/use-course-progress";
 import { isLevelComplete } from "@/lib/course-certificates";
 import {
-  type CompletionState,
   type CourseLevel,
   type LanguageCourseDefinition,
   type CourseModule,
   type CourseSlug,
 } from "@/lib/course-definitions";
-import { countCompletedModules } from "@/lib/course-progress";
+import {
+  countCompletedModules,
+  type StoredModuleProgress,
+  type StoredPracticeItemProgress,
+} from "@/lib/course-progress";
 
 type CourseSelection = {
   levelId: string;
@@ -116,18 +119,22 @@ function buildCourseWorkspaceState(input: {
     activeModule.id,
     input.setProgress,
   );
-  const progressSummary = buildProgressSummary(input.progress);
+  const progressSummary = buildProgressSummary(input.progress, activeLevel);
 
   return {
+    activeLevelCompletedCount: progressSummary.activeLevelCompletedCount,
     activeLevelId: activeLevel.id,
     activeModule,
     activeModuleId: activeModule.id,
     course: input.course,
     activeProgress,
+    activePracticeItems: activeProgress.practiceItems,
     completedCount: countCompletedModules(input.progress),
     courseResources: input.course.resources,
     levelLabel: activeLevel.officialLabel,
     onComplete: () => completeModule(updateActiveModule),
+    onPracticeItemChange: (itemId: string, value: StoredPracticeItemProgress) =>
+      setPracticeItem(updateActiveModule, itemId, value),
     onSelectModule: (level: CourseLevel, module: CourseModule) =>
       input.setSelection({ levelId: level.id, moduleId: module.id }),
     onStart: () => startModule(updateActiveModule),
@@ -141,12 +148,16 @@ function buildCourseWorkspaceState(input: {
 
 function buildProgressSummary(
   progress: NonNullable<ReturnType<typeof useCourseProgress>["progress"]>,
+  activeLevel: CourseLevel,
 ) {
   return {
+    activeLevelCompletedCount: activeLevel.modules.filter(
+      (module) => progress.modules[module.id]?.state === "completed",
+    ).length,
     progressMap: Object.fromEntries(
       Object.entries(progress.modules).map(([id, value]) => [id, value.state]),
     ),
-    totalCount: Object.keys(progress.modules).length,
+    totalCount: activeLevel.modules.length,
   };
 }
 
@@ -162,21 +173,7 @@ function createModuleUpdater(
   moduleId: string,
   setProgress: ReturnType<typeof useCourseProgress>["setProgress"],
 ) {
-  return (
-    updater: (current: {
-      completedAt: string | null;
-      currentTurn: number;
-      lastTranscript: string;
-      sessionsStarted: number;
-      state: CompletionState;
-    }) => {
-      completedAt: string | null;
-      currentTurn: number;
-      lastTranscript: string;
-      sessionsStarted: number;
-      state: CompletionState;
-    },
-  ) =>
+  return (updater: (current: StoredModuleProgress) => StoredModuleProgress) =>
     setProgress((current) =>
       current
         ? {
@@ -215,4 +212,18 @@ function setTranscript(
   value: string,
 ) {
   update((current) => ({ ...current, lastTranscript: value }));
+}
+
+function setPracticeItem(
+  update: ReturnType<typeof createModuleUpdater>,
+  itemId: string,
+  value: StoredPracticeItemProgress,
+) {
+  update((current) => ({
+    ...current,
+    practiceItems: {
+      ...current.practiceItems,
+      [itemId]: value,
+    },
+  }));
 }
