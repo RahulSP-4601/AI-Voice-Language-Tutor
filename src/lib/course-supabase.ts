@@ -46,9 +46,25 @@ async function selectRows(
   return data ?? [];
 }
 
+async function selectLanguageRows(
+  client: SupabaseClient,
+  slug: CourseSlug,
+) {
+  const { data, error } = await client
+    .from("curriculum_languages")
+    .select("*")
+    .eq("slug", slug);
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
 async function loadCurriculumRows(client: SupabaseClient, slug: CourseSlug) {
   const [languageRows, levelRows, moduleRows, lessonRows] = await Promise.all([
-    selectRows(client, "curriculum_languages", slug),
+    selectLanguageRows(client, slug),
     selectRows(client, "curriculum_levels", slug),
     selectRows(client, "curriculum_modules", slug),
     selectRows(client, "curriculum_lessons", slug),
