@@ -123,11 +123,11 @@ export function scorePracticeTranscript(expected: PracticeCard, transcript: stri
 
   const targets = [expected.japanese, expected.reading].map(normalize);
   if (targets.includes(value)) {
-    return 98;
+    return 100;
   }
 
   if (targets.some((target) => isNearExactMatch(target, value))) {
-    return 90;
+    return 84;
   }
 
   return 0;

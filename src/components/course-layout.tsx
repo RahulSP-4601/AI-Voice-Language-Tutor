@@ -2,7 +2,6 @@
 
 import { CourseSidebar } from "@/components/course-sidebar";
 import { CourseStudyBank } from "@/components/course-study-bank";
-import { CourseSurface } from "@/components/course-surface";
 import {
   type CompletionState,
   type CourseLevel,
@@ -52,21 +51,13 @@ export function CourseLayout(props: {
   activeModule: CourseModule;
   activeModuleId: string;
   activeProgress: {
-    currentTurn: number;
-    lastTranscript: string;
     practiceItems: Record<string, StoredPracticeItemProgress>;
-    state: CompletionState;
   };
-  completedCount: number;
   course: LanguageCourseDefinition;
   courseResources?: LanguageCourseResources;
   levelLabel: string;
-  onComplete: () => void;
   onPracticeItemChange: (itemId: string, value: StoredPracticeItemProgress) => void;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
-  onStart: () => void;
-  onTranscriptChange: (value: string) => void;
-  onTurnChange: (turn: number) => void;
   progressMap: Record<string, CompletionState>;
   slug: CourseSlug;
   totalCount: number;
@@ -98,21 +89,6 @@ function CourseLayoutMain(
         course={props.course}
         totalCount={props.totalCount}
         levelLabel={props.levelLabel}
-      />
-      <CourseSurface
-        course={props.course}
-        courseResources={props.courseResources}
-        slug={props.slug}
-        module={props.activeModule}
-        activeState={props.activeProgress.state}
-        completedCount={props.activeLevelCompletedCount}
-        currentTurn={props.activeProgress.currentTurn}
-        lastTranscript={props.activeProgress.lastTranscript}
-        onStart={props.onStart}
-        onTurnChange={props.onTurnChange}
-        onTranscriptChange={props.onTranscriptChange}
-        onComplete={props.onComplete}
-        totalCount={props.totalCount}
       />
       <CourseStudyBank
         module={props.activeModule}

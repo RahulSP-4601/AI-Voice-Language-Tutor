@@ -13,7 +13,9 @@ import {
   type CourseSlug,
 } from "@/lib/course-definitions";
 import {
-  countCompletedModules,
+  buildPracticeCards,
+} from "@/lib/module-practice";
+import {
   type StoredModuleProgress,
   type StoredPracticeItemProgress,
 } from "@/lib/course-progress";
@@ -128,18 +130,18 @@ function buildCourseWorkspaceState(input: {
     activeModuleId: activeModule.id,
     course: input.course,
     activeProgress,
-    activePracticeItems: activeProgress.practiceItems,
-    completedCount: countCompletedModules(input.progress),
     courseResources: input.course.resources,
     levelLabel: activeLevel.officialLabel,
-    onComplete: () => completeModule(updateActiveModule),
     onPracticeItemChange: (itemId: string, value: StoredPracticeItemProgress) =>
-      setPracticeItem(updateActiveModule, itemId, value),
+      setPracticeItem(
+        updateActiveModule,
+        input.course,
+        activeModule,
+        itemId,
+        value,
+      ),
     onSelectModule: (level: CourseLevel, module: CourseModule) =>
       input.setSelection({ levelId: level.id, moduleId: module.id }),
-    onStart: () => startModule(updateActiveModule),
-    onTranscriptChange: (value: string) => setTranscript(updateActiveModule, value),
-    onTurnChange: (turn: number) => setTurn(updateActiveModule, turn),
     progressMap: progressSummary.progressMap,
     ready: input.ready,
     totalCount: progressSummary.totalCount,
@@ -187,43 +189,44 @@ function createModuleUpdater(
     );
 }
 
-function completeModule(update: ReturnType<typeof createModuleUpdater>) {
-  update((current) => ({
-    ...current,
-    completedAt: new Date().toISOString(),
-    state: "completed",
-  }));
-}
-
-function startModule(update: ReturnType<typeof createModuleUpdater>) {
-  update((current) => ({
-    ...current,
-    state: "in_progress",
-    sessionsStarted: current.sessionsStarted + 1,
-  }));
-}
-
-function setTurn(update: ReturnType<typeof createModuleUpdater>, turn: number) {
-  update((current) => ({ ...current, currentTurn: turn }));
-}
-
-function setTranscript(
-  update: ReturnType<typeof createModuleUpdater>,
-  value: string,
-) {
-  update((current) => ({ ...current, lastTranscript: value }));
-}
-
 function setPracticeItem(
   update: ReturnType<typeof createModuleUpdater>,
+  course: LanguageCourseDefinition,
+  module: CourseModule,
   itemId: string,
   value: StoredPracticeItemProgress,
 ) {
   update((current) => ({
-    ...current,
-    practiceItems: {
-      ...current.practiceItems,
-      [itemId]: value,
-    },
+    ...buildNextModuleProgress(current, course, module, itemId, value),
   }));
+}
+
+function buildNextModuleProgress(
+  current: StoredModuleProgress,
+  course: LanguageCourseDefinition,
+  module: CourseModule,
+  itemId: string,
+  value: StoredPracticeItemProgress,
+) {
+  const practiceItems = {
+    ...current.practiceItems,
+    [itemId]: value,
+  };
+  const itemIds = buildPracticeCards(module, course.resources).map((item) => item.id);
+  const hasPracticeCards = itemIds.length > 0;
+  const allDone =
+    hasPracticeCards &&
+    itemIds.every((id) => practiceItems[id]?.done);
+  const anyTouched = itemIds.some((id) => {
+    const progress = practiceItems[id];
+    return Boolean(progress?.done) || typeof progress?.lastScore === "number";
+  });
+
+  return {
+    ...current,
+    completedAt: allDone ? new Date().toISOString() : null,
+    practiceItems,
+    sessionsStarted: anyTouched ? Math.max(current.sessionsStarted, 1) : current.sessionsStarted,
+    state: allDone ? "completed" : anyTouched ? "in_progress" : "not_started",
+  } satisfies StoredModuleProgress;
 }

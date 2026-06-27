@@ -43,8 +43,8 @@ function SectionIntro(props: { moduleTitle: string }) {
         Practice real {props.moduleTitle} words until they feel natural
       </h3>
       <p className="mt-4 max-w-4xl text-base leading-8 text-stone-200">
-        Hear the Japanese, hear the English meaning, say it back, check your
-        score, and mark it done when you are personally happy with it.
+        Hear the Japanese, hear the English meaning, say it back, and turn each
+        card green only after you personally lock in a perfect spoken match.
       </p>
     </div>
   );
@@ -52,48 +52,142 @@ function SectionIntro(props: { moduleTitle: string }) {
 
 function CardStatus(props: { progress?: StoredPracticeItemProgress }) {
   if (props.progress?.done) {
-    return <span className="text-emerald-200">Done</span>;
+    return <span className="text-emerald-200">Green and saved</span>;
   }
 
   if (typeof props.progress?.lastScore === "number") {
-    return <span className="text-amber-100">Last score {props.progress.lastScore}/100</span>;
+    return (
+      <span className="text-amber-100">
+        Score {props.progress.lastScore}/100
+      </span>
+    );
   }
 
   return <span className="text-stone-500">Ready to practice</span>;
 }
 
-function PracticeItemCard(props: {
-  isActive: boolean;
-  item: PracticeCard;
-  onSelect: () => void;
+function CardHeader(props: {
+  done: boolean | undefined;
   progress?: StoredPracticeItemProgress;
+  title: string;
 }) {
-  const done = props.progress?.done;
   return (
-    <button
-      type="button"
-      onClick={props.onSelect}
-      className={`w-full rounded-2xl border p-4 text-left transition ${
-        done
-          ? "border-emerald-400/30 bg-emerald-500/[0.08]"
-          : props.isActive
-            ? "border-amber-300/25 bg-amber-300/10"
-            : "border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.05]"
-      }`}
-    >
+    <div className="flex items-start justify-between gap-4">
       <p className="text-[11px] uppercase tracking-[0.22em] text-stone-400">
-        {props.item.title}
+        {props.title}
       </p>
-      <p className="mt-3 text-3xl font-semibold text-white">{props.item.japanese}</p>
+      <span
+        className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${
+          props.done
+            ? "border-emerald-400/30 bg-emerald-500/[0.08] text-emerald-100"
+            : "border-white/10 bg-black/20 text-stone-300"
+        }`}
+      >
+        <CardStatus progress={props.progress} />
+      </span>
+    </div>
+  );
+}
+
+function CardCopy(props: { item: PracticeCard }) {
+  return (
+    <>
+      <p className="mt-4 text-3xl font-semibold text-white">
+        {props.item.japanese}
+      </p>
       <p className="mt-3 text-sm uppercase tracking-[0.18em] text-amber-100">
         {props.item.reading}
       </p>
       <p className="mt-3 text-base text-stone-100">{props.item.english}</p>
       <p className="mt-3 text-sm leading-6 text-stone-400">{props.item.example}</p>
-      <p className="mt-4 text-xs uppercase tracking-[0.18em]">
-        <CardStatus progress={props.progress} />
-      </p>
-    </button>
+    </>
+  );
+}
+
+function CardMetrics(props: {
+  done: boolean | undefined;
+  progress?: StoredPracticeItemProgress;
+}) {
+  return (
+    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      <ScoreMetric
+        label="Current score"
+        value={
+          typeof props.progress?.lastScore === "number"
+            ? `${props.progress.lastScore}/100`
+            : "Pending"
+        }
+      />
+      <ScoreMetric
+        label="Last answer"
+        value={props.progress?.lastTranscript || "No spoken answer yet"}
+      />
+      <ScoreMetric
+        label="Status"
+        value={props.done ? "Green and saved" : "Get 100/100, then mark green"}
+      />
+    </div>
+  );
+}
+
+function CardActions(props: {
+  canMarkDone: boolean;
+  done: boolean | undefined;
+  isListening: boolean;
+  onMarkDone: () => void;
+  onPlay: () => void;
+  onRecord: () => void;
+  supported: boolean;
+}) {
+  return (
+    <div className="mt-5 flex flex-wrap gap-3">
+      <ActionButton label="Play tutor line" onClick={props.onPlay} />
+      <ActionButton
+        label={props.isListening ? "Listening..." : "Record my answer"}
+        muted={!props.supported}
+        onClick={props.onRecord}
+      />
+      <ActionButton
+        label={props.done ? "Marked green" : "Mark green"}
+        muted={!props.canMarkDone}
+        onClick={props.onMarkDone}
+      />
+    </div>
+  );
+}
+
+function PracticeItemCard(props: {
+  isListening: boolean;
+  item: PracticeCard;
+  onMarkDone: () => void;
+  onPlay: () => void;
+  onRecord: () => void;
+  progress?: StoredPracticeItemProgress;
+  supported: boolean;
+}) {
+  const done = props.progress?.done;
+  const canMarkDone = isPerfectScore(props.progress?.lastScore) || Boolean(done);
+  return (
+    <article
+      className={`w-full rounded-2xl border p-4 text-left transition ${
+        done
+          ? "border-emerald-400/30 bg-emerald-500/[0.08]"
+          : "border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.05]"
+      }`}
+    >
+      <CardHeader done={done} progress={props.progress} title={props.item.title} />
+      <CardCopy item={props.item} />
+      <CardMetrics done={done} progress={props.progress} />
+      <CardActions
+        canMarkDone={canMarkDone}
+        done={done}
+        isListening={props.isListening}
+        onMarkDone={props.onMarkDone}
+        onPlay={props.onPlay}
+        onRecord={props.onRecord}
+        supported={props.supported}
+      />
+    </article>
   );
 }
 
@@ -138,17 +232,21 @@ function usePracticeSelection(items: PracticeCard[]) {
   };
 }
 
-function createProgress(score: number, transcript: string) {
+function createProgress(
+  score: number,
+  transcript: string,
+  current?: StoredPracticeItemProgress,
+) {
   return {
-    done: false,
+    done: current?.done ?? false,
     lastScore: score,
     lastTranscript: transcript,
     practicedAt: new Date().toISOString(),
   } satisfies StoredPracticeItemProgress;
 }
 
-function isPassingScore(score?: number | null) {
-  return typeof score === "number" && score >= 84;
+function isPerfectScore(score?: number | null) {
+  return score === 100;
 }
 
 function markDone(current?: StoredPracticeItemProgress) {
@@ -181,69 +279,10 @@ function usePracticeScoring(props: {
     const spokenText = transcript.trim();
     if (!item || !spokenText) return;
     const score = scorePracticeTranscript(item, transcript);
-    if (score <= 0) return;
     const current = progress[item.id];
     if (current?.lastTranscript === transcript && current.lastScore === score) return;
-    onSave(item.id, createProgress(score, transcript));
+    onSave(item.id, createProgress(score, transcript, current));
   }, [item, onSave, progress, transcript]);
-}
-
-function PracticeDetails(props: {
-  item: PracticeCard;
-  onPlay: () => void;
-  onRecord: () => void;
-  listening: boolean;
-  onMarkDone: () => void;
-  progress?: StoredPracticeItemProgress;
-  supported: boolean;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-emerald-100">
-        Live practice
-      </p>
-      <p className="mt-4 text-4xl font-semibold text-white">{props.item.japanese}</p>
-      <p className="mt-3 text-base uppercase tracking-[0.18em] text-amber-100">
-        {props.item.reading}
-      </p>
-      <p className="mt-4 text-xl text-stone-100">{props.item.english}</p>
-      <p className="mt-4 text-sm leading-7 text-stone-300">{props.item.example}</p>
-      <div className="mt-5 flex flex-wrap gap-3">
-        <ActionButton label="Hear word + meaning" onClick={props.onPlay} />
-        <ActionButton
-          label={props.listening ? "Listening..." : "Speak now"}
-          muted={!props.supported}
-          onClick={props.onRecord}
-        />
-        <ActionButton
-          label={props.progress?.done ? "Marked done" : "Mark done"}
-          muted={!isPassingScore(props.progress?.lastScore)}
-          onClick={props.onMarkDone}
-        />
-      </div>
-    </div>
-  );
-}
-
-function ScoreDetails(props: { progress?: StoredPracticeItemProgress }) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-sky-100">
-        Speaking result
-      </p>
-      <div className="mt-4 grid gap-3">
-        <ScoreMetric label="Last transcript" value={props.progress?.lastTranscript || "No spoken attempt yet"} />
-        <ScoreMetric
-          label="Score"
-          value={typeof props.progress?.lastScore === "number" ? `${props.progress.lastScore}/100` : "Pending"}
-        />
-        <ScoreMetric
-          label="Status"
-          value={props.progress?.done ? "Completed and saved" : "Practice, then mark when ready"}
-        />
-      </div>
-    </div>
-  );
 }
 
 function PracticeEmpty(props: { title: string }) {
@@ -257,8 +296,11 @@ function PracticeEmpty(props: { title: string }) {
 function PracticeGrid(props: {
   activeId: string;
   items: PracticeCard[];
-  onSelect: (id: string) => void;
+  onMarkDone: (item: PracticeCard) => void;
+  onPlay: (item: PracticeCard) => void;
+  onRecord: (item: PracticeCard) => void;
   progress: Record<string, StoredPracticeItemProgress>;
+  speechSupported: boolean;
 }) {
   return (
     <div className="grid gap-3 xl:grid-cols-2">
@@ -266,38 +308,46 @@ function PracticeGrid(props: {
         <PracticeItemCard
           key={item.id}
           item={item}
-          isActive={item.id === props.activeId}
-          onSelect={() => props.onSelect(item.id)}
+          isListening={item.id === props.activeId}
+          onMarkDone={() => props.onMarkDone(item)}
+          onPlay={() => props.onPlay(item)}
+          onRecord={() => props.onRecord(item)}
           progress={props.progress[item.id]}
+          supported={props.speechSupported}
         />
       ))}
     </div>
   );
 }
 
-function PracticeSectionBody(props: {
-  canMarkDone: boolean;
-  progress?: StoredPracticeItemProgress;
-  selected: PracticeCard;
+function createPracticeActions(props: {
+  onSave: (itemId: string, value: StoredPracticeItemProgress) => void;
+  progress: Record<string, StoredPracticeItemProgress>;
+  setRecordingItemId: (id: string) => void;
+  setSelectedId: (id: string) => void;
+  setTranscript: (value: string) => void;
+  slug: CourseSlug;
   speech: ReturnType<typeof useLessonSpeech>;
-  onMarkDone: () => void;
-  onPlay: () => void;
-  onRecord: () => void;
 }) {
-  return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
-      <PracticeDetails
-        item={props.selected}
-        listening={props.speech.isListening}
-        onMarkDone={props.canMarkDone ? props.onMarkDone : () => {}}
-        onPlay={props.onPlay}
-        onRecord={props.onRecord}
-        progress={props.progress}
-        supported={props.speech.supported}
-      />
-      <ScoreDetails progress={props.progress} />
-    </div>
-  );
+  return {
+    markItemDone(item: PracticeCard) {
+      const current = props.progress[item.id];
+      if (!isPerfectScore(current?.lastScore) && !current?.done) return;
+      props.onSave(item.id, markDone(current));
+    },
+    playItem(item: PracticeCard) {
+      props.setSelectedId(item.id);
+      props.setRecordingItemId("");
+      props.setTranscript("");
+      speakPrompt(item, props.slug);
+    },
+    recordItem(item: PracticeCard) {
+      props.setSelectedId(item.id);
+      props.setRecordingItemId(item.id);
+      props.setTranscript("");
+      props.speech.startListening();
+    },
+  };
 }
 
 function PracticeSection(props: {
@@ -308,11 +358,14 @@ function PracticeSection(props: {
   title: string;
 }) {
   const { selected, setSelectedId } = usePracticeSelection(props.items);
+  const [recordingItemId, setRecordingItemId] = useState("");
   const [transcript, setTranscript] = useState("");
   const speech = useLessonSpeech(props.slug, setTranscript);
+  const recordingItem =
+    props.items.find((item) => item.id === recordingItemId) ?? null;
 
   usePracticeScoring({
-    item: selected,
+    item: recordingItem,
     onSave: props.onSave,
     progress: props.progress,
     transcript,
@@ -322,30 +375,27 @@ function PracticeSection(props: {
     return <PracticeEmpty title={props.title} />;
   }
 
-  const progress = props.progress[selected.id];
-  const canMarkDone = isPassingScore(progress?.lastScore) || Boolean(progress?.done);
+  const actions = createPracticeActions({
+    onSave: props.onSave,
+    progress: props.progress,
+    setRecordingItemId,
+    setSelectedId,
+    setTranscript,
+    slug: props.slug,
+    speech,
+  });
+
   return (
     <SectionShell title={props.title}>
-      <div className="space-y-4">
-        <PracticeGrid
-          activeId={selected.id}
-          items={props.items}
-          onSelect={(itemId) => {
-            setSelectedId(itemId);
-            setTranscript("");
-          }}
-          progress={props.progress}
-        />
-        <PracticeSectionBody
-          canMarkDone={canMarkDone}
-          progress={progress}
-          selected={selected}
-          speech={speech}
-          onMarkDone={() => props.onSave(selected.id, markDone(progress))}
-          onPlay={() => speakPrompt(selected, props.slug)}
-          onRecord={() => speech.startListening()}
-        />
-      </div>
+      <PracticeGrid
+        activeId={speech.isListening ? selected.id : ""}
+        items={props.items}
+        onMarkDone={actions.markItemDone}
+        onPlay={actions.playItem}
+        onRecord={actions.recordItem}
+        progress={props.progress}
+        speechSupported={speech.supported}
+      />
     </SectionShell>
   );
 }
