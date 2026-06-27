@@ -10,6 +10,7 @@ type RecognitionShape = {
   onerror: null | (() => void);
   onresult: null | ((event: SpeechRecognitionEventLike) => void);
   start: () => void;
+  stop?: () => void;
 };
 
 type SpeechRecognitionEventLike = {
@@ -24,16 +25,46 @@ function getSpeechLanguage(slug: CourseSlug) {
   return "en-US";
 }
 
+function getSpeechRecognitionCtor() {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  return window.SpeechRecognition ?? window.webkitSpeechRecognition;
+}
+
+function bindRecognition(input: {
+  onTranscript: (value: string) => void;
+  recognition: RecognitionShape;
+  setIsListening: (value: boolean) => void;
+  slug: CourseSlug;
+}) {
+  input.recognition.lang = getSpeechLanguage(input.slug);
+  input.recognition.onresult = (event) => {
+    const text = event.results[0]?.[0]?.transcript ?? "";
+    input.onTranscript(text);
+  };
+  input.recognition.onend = () => input.setIsListening(false);
+  input.recognition.onerror = () => input.setIsListening(false);
+}
+
+function stopRecognition(recognition: RecognitionShape, setIsListening: (value: boolean) => void) {
+  if (recognition.stop) {
+    recognition.stop();
+    return;
+  }
+
+  recognition.abort();
+  setIsListening(false);
+}
+
 export function useLessonSpeech(
   slug: CourseSlug,
   onTranscript: (value: string) => void,
 ) {
   const recognitionRef = useRef<RecognitionShape | null>(null);
   const [isListening, setIsListening] = useState(false);
-  const SpeechRecognitionCtor =
-    typeof window === "undefined"
-      ? undefined
-      : window.SpeechRecognition ?? window.webkitSpeechRecognition;
+  const SpeechRecognitionCtor = getSpeechRecognitionCtor();
   const supported = Boolean(SpeechRecognitionCtor);
 
   useEffect(() => {
@@ -42,16 +73,13 @@ export function useLessonSpeech(
     }
 
     const recognition = new SpeechRecognitionCtor() as RecognitionShape;
-    recognition.lang = getSpeechLanguage(slug);
-    recognition.onresult = (event) => {
-      const text = event.results[0]?.[0]?.transcript ?? "";
-      onTranscript(text);
-    };
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
+    bindRecognition({ onTranscript, recognition, setIsListening, slug });
     recognitionRef.current = recognition;
 
-    return () => recognition.abort();
+    return () => {
+      recognition.abort();
+      recognitionRef.current = null;
+    };
   }, [SpeechRecognitionCtor, onTranscript, slug]);
 
   function startListening() {
@@ -63,6 +91,14 @@ export function useLessonSpeech(
     setIsListening(true);
   }
 
+  function stopListening() {
+    if (!recognitionRef.current) {
+      return;
+    }
+
+    stopRecognition(recognitionRef.current, setIsListening);
+  }
+
   function playPhrase(phrase: string) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(phrase);
@@ -70,7 +106,7 @@ export function useLessonSpeech(
     window.speechSynthesis.speak(utterance);
   }
 
-  return { isListening, playPhrase, startListening, supported };
+  return { isListening, playPhrase, startListening, stopListening, supported };
 }
 
 declare global {

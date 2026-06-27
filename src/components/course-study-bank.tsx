@@ -134,20 +134,22 @@ function CardActions(props: {
   canMarkDone: boolean;
   done: boolean | undefined;
   isListening: boolean;
+  isRecordingSupported: boolean;
   onMarkDone: () => void;
   onPlay: () => void;
   onRecord: () => void;
-  supported: boolean;
 }) {
   return (
     <div className="mt-5 flex flex-wrap gap-3">
       <ActionButton label="Play tutor line" onClick={props.onPlay} />
       <ActionButton
-        label={props.isListening ? "Listening..." : "Record my answer"}
-        muted={!props.supported}
+        disabled={!props.isRecordingSupported}
+        label={props.isListening ? "Stop recording" : "Record my answer"}
+        muted={!props.isRecordingSupported}
         onClick={props.onRecord}
       />
       <ActionButton
+        disabled={!props.canMarkDone}
         label={props.done ? "Marked green" : "Mark green"}
         muted={!props.canMarkDone}
         onClick={props.onMarkDone}
@@ -182,16 +184,17 @@ function PracticeItemCard(props: {
         canMarkDone={canMarkDone}
         done={done}
         isListening={props.isListening}
+        isRecordingSupported={props.supported}
         onMarkDone={props.onMarkDone}
         onPlay={props.onPlay}
         onRecord={props.onRecord}
-        supported={props.supported}
       />
     </article>
   );
 }
 
 function ActionButton(props: {
+  disabled?: boolean;
   label: string;
   muted?: boolean;
   onClick: () => void;
@@ -199,10 +202,11 @@ function ActionButton(props: {
   return (
     <button
       type="button"
+      disabled={props.disabled}
       onClick={props.onClick}
       className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
         props.muted
-          ? "border-white/10 bg-white/[0.04] text-stone-200 hover:bg-white/[0.08]"
+          ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-stone-400"
           : "border-amber-300/20 bg-amber-300/12 text-amber-100 hover:bg-amber-300/18"
       }`}
     >
@@ -323,6 +327,7 @@ function PracticeGrid(props: {
 function createPracticeActions(props: {
   onSave: (itemId: string, value: StoredPracticeItemProgress) => void;
   progress: Record<string, StoredPracticeItemProgress>;
+  recordingItemId: string;
   setRecordingItemId: (id: string) => void;
   setSelectedId: (id: string) => void;
   setTranscript: (value: string) => void;
@@ -342,6 +347,11 @@ function createPracticeActions(props: {
       speakPrompt(item, props.slug);
     },
     recordItem(item: PracticeCard) {
+      if (props.speech.isListening && props.recordingItemId === item.id) {
+        props.speech.stopListening();
+        return;
+      }
+
       props.setSelectedId(item.id);
       props.setRecordingItemId(item.id);
       props.setTranscript("");
@@ -378,6 +388,7 @@ function PracticeSection(props: {
   const actions = createPracticeActions({
     onSave: props.onSave,
     progress: props.progress,
+    recordingItemId,
     setRecordingItemId,
     setSelectedId,
     setTranscript,
@@ -388,7 +399,7 @@ function PracticeSection(props: {
   return (
     <SectionShell title={props.title}>
       <PracticeGrid
-        activeId={speech.isListening ? selected.id : ""}
+        activeId={speech.isListening ? recordingItemId : ""}
         items={props.items}
         onMarkDone={actions.markItemDone}
         onPlay={actions.playItem}

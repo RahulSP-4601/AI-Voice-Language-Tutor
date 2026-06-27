@@ -58,6 +58,121 @@ function kanjiCards(entries: KanjiEntry[], title: string) {
   }));
 }
 
+function hashValue(value: string) {
+  return Array.from(value).reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0,
+  );
+}
+
+function tokenize(value: string) {
+  return normalize(value)
+    .split(/\s+/)
+    .filter((token) => token.length > 2);
+}
+
+function moduleSignals(module: CourseModule) {
+  return Array.from(
+    new Set(
+      [
+        module.title,
+        module.objective,
+        module.checkpointLabel,
+        ...module.experience.coverage,
+        ...module.lessons.flatMap((lesson) => [
+          lesson.title,
+          lesson.demoPhrase,
+          lesson.replyPrompt,
+          lesson.targetPattern,
+          lesson.learnerOutcome,
+          ...lesson.acceptableResponses,
+        ]),
+      ].flatMap(tokenize),
+    ),
+  );
+}
+
+function pickFallbackWindow<T>(items: T[], key: string, size: number) {
+  if (items.length <= size) {
+    return items;
+  }
+
+  const start = hashValue(key) % items.length;
+  return Array.from({ length: size }, (_, index) => items[(start + index) % items.length]);
+}
+
+function cardText(card: PracticeCard) {
+  return [card.japanese, card.reading, card.english, card.example].map(normalize).join(" ");
+}
+
+function matchesSignal(card: PracticeCard, signals: string[]) {
+  const haystack = cardText(card);
+  return signals.some((signal) => haystack.includes(signal));
+}
+
+function dedupeCards(cards: PracticeCard[]) {
+  return Array.from(new Map(cards.map((card) => [card.id, card])).values());
+}
+
+function linkedWordCards(
+  resources: LanguageCourseResources,
+  module: CourseModule,
+) {
+  return linkedVocabulary(resources, module);
+}
+
+function linkedKanjiCards(
+  resources: LanguageCourseResources,
+  module: CourseModule,
+) {
+  return linkedKanji(resources, module);
+}
+
+function targetedCards(cards: PracticeCard[], signals: string[]) {
+  return dedupeCards(cards.filter((card) => matchesSignal(card, signals)));
+}
+
+function supplementCards(
+  focused: PracticeCard[],
+  fallback: PracticeCard[],
+  moduleId: string,
+  size: number,
+) {
+  const existing = new Set(focused.map((card) => card.id));
+  const remaining = fallback.filter((card) => !existing.has(card.id));
+  return dedupeCards([...focused, ...pickFallbackWindow(remaining, moduleId, size)]);
+}
+
+function buildModuleWords(
+  resources: LanguageCourseResources,
+  module: CourseModule,
+  signals: string[],
+) {
+  const linked = linkedWordCards(resources, module);
+  const allCards = resources.vocabularyCategories.flatMap((category) =>
+    wordCards(category.entries, category.title),
+  );
+  const focused = targetedCards(allCards, signals);
+  return supplementCards(focused, linked, `${module.id}:words`, 6);
+}
+
+function buildModuleKanji(
+  resources: LanguageCourseResources,
+  module: CourseModule,
+  signals: string[],
+) {
+  const linked = linkedKanjiCards(resources, module);
+  if (!linked.length) {
+    return [];
+  }
+
+  const allCards = resources.kanjiGroups.flatMap((group) =>
+    kanjiCards(group.entries, group.title),
+  );
+  const focused = targetedCards(allCards, signals);
+  return supplementCards(focused, linked, `${module.id}:kanji`, 4);
+}
+
 function linkedVocabulary(
   resources: LanguageCourseResources,
   module: CourseModule,
@@ -96,7 +211,11 @@ export function buildPracticeCards(
     return [] as PracticeCard[];
   }
 
-  return [...linkedVocabulary(resources, module), ...linkedKanji(resources, module)];
+  const signals = moduleSignals(module);
+  return [
+    ...buildModuleWords(resources, module, signals),
+    ...buildModuleKanji(resources, module, signals),
+  ];
 }
 
 export function findLessonMeaning(
