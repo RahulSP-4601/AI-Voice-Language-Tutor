@@ -6,10 +6,10 @@ import {
   type CompletionState,
   type CourseLevel,
   type LanguageCourseDefinition,
-  type LanguageCourseResources,
   type CourseModule,
   type CourseSlug,
 } from "@/lib/course-definitions";
+import { type ModulePracticeDeck } from "@/lib/module-practice";
 import { type StoredPracticeItemProgress } from "@/lib/course-progress";
 
 function LearningIntro(props: {
@@ -54,10 +54,10 @@ export function CourseLayout(props: {
     practiceItems: Record<string, StoredPracticeItemProgress>;
   };
   course: LanguageCourseDefinition;
-  courseResources?: LanguageCourseResources;
   levelLabel: string;
   onPracticeItemChange: (itemId: string, value: StoredPracticeItemProgress) => void;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
+  practiceDeck: ModulePracticeDeck;
   progressMap: Record<string, CompletionState>;
   slug: CourseSlug;
   totalCount: number;
@@ -94,7 +94,7 @@ function CourseLayoutMain(
         module={props.activeModule}
         onPracticeItemChange={props.onPracticeItemChange}
         practiceItems={props.activeProgress.practiceItems}
-        resources={props.courseResources}
+        practiceDeck={props.practiceDeck}
         slug={props.slug}
       />
     </section>

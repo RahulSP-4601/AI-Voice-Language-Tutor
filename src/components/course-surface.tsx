@@ -6,9 +6,8 @@ import {
   type CourseModule,
   type CourseSlug,
   type LanguageCourseDefinition,
-  type LanguageCourseResources,
 } from "@/lib/course-definitions";
-import { buildPracticeCards, findLessonMeaning } from "@/lib/module-practice";
+import { buildModulePracticeCards, findLessonMeaning } from "@/lib/module-practice";
 
 function getStateLabel(state: CompletionState) {
   if (state === "completed") return "Completed";
@@ -28,7 +27,6 @@ export function CourseSurface(props: {
   activeState: CompletionState;
   completedCount: number;
   course: LanguageCourseDefinition;
-  courseResources?: LanguageCourseResources;
   currentTurn: number;
   lastTranscript: string;
   module: CourseModule;
@@ -39,23 +37,19 @@ export function CourseSurface(props: {
   slug: CourseSlug;
   totalCount: number;
 }) {
-  const lesson = props.module.lessons[0];
-  const cards = buildPracticeCards(props.module, props.courseResources);
-  const lessonMeaning = findLessonMeaning(lesson, cards);
-
   return (
     <section className="rounded-[1.9rem] border border-white/10 bg-[linear-gradient(135deg,rgba(247,200,116,0.14),rgba(255,255,255,0.03))] p-7 shadow-[0_30px_90px_rgba(0,0,0,0.2)]">
       <SurfaceHeader
         course={props.course}
         lessonDuration={props.course.lessonDuration}
-        meaning={lessonMeaning}
+        meaning={getLessonMeaning(props.course, props.module)}
         module={props.module}
         state={props.activeState}
       />
       <LessonRunner
         key={props.module.id}
         slug={props.slug}
-        lesson={lesson}
+        lesson={props.module.lessons[0]}
         moduleId={props.module.id}
         moduleState={props.activeState}
         currentTurn={props.currentTurn}
@@ -72,6 +66,16 @@ export function CourseSurface(props: {
         }}
       />
     </section>
+  );
+}
+
+function getLessonMeaning(
+  course: LanguageCourseDefinition,
+  module: CourseModule,
+) {
+  return findLessonMeaning(
+    module.lessons[0],
+    buildModulePracticeCards(course, module.id).all,
   );
 }
 

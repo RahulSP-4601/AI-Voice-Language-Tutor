@@ -1,10 +1,14 @@
 import { type CompletionState, type LanguageCourseDefinition } from "@/lib/course-definitions";
 
 export type StoredPracticeItemProgress = {
+  accuracyScore: number | null;
+  coachingFeedback: string;
   done: boolean;
+  fluencyScore: number | null;
   lastScore: number | null;
   lastTranscript: string;
   practicedAt: string | null;
+  pronunciationScore: number | null;
 };
 
 export type StoredModuleProgress = {
@@ -18,17 +22,21 @@ export type StoredModuleProgress = {
 
 export type StoredCourseProgress = {
   modules: Record<string, StoredModuleProgress>;
-  version: 2;
+  version: 3;
 };
 
-const STORAGE_VERSION = 2;
+const STORAGE_VERSION = 3;
 
 function createPracticeItemProgress() {
   return {
+    accuracyScore: null,
+    coachingFeedback: "",
     done: false,
+    fluencyScore: null,
     lastScore: null,
     lastTranscript: "",
     practicedAt: null,
+    pronunciationScore: null,
   } satisfies StoredPracticeItemProgress;
 }
 

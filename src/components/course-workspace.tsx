@@ -13,7 +13,8 @@ import {
   type CourseSlug,
 } from "@/lib/course-definitions";
 import {
-  buildPracticeCards,
+  buildModulePracticeCards,
+  type ModulePracticeDeck,
 } from "@/lib/module-practice";
 import {
   type StoredModuleProgress,
@@ -121,6 +122,7 @@ function buildCourseWorkspaceState(input: {
     activeModule.id,
     input.setProgress,
   );
+  const practiceDeck = buildModulePracticeCards(input.course, activeModule.id);
   const progressSummary = buildProgressSummary(input.progress, activeLevel);
 
   return {
@@ -130,13 +132,12 @@ function buildCourseWorkspaceState(input: {
     activeModuleId: activeModule.id,
     course: input.course,
     activeProgress,
-    courseResources: input.course.resources,
+    practiceDeck,
     levelLabel: activeLevel.officialLabel,
     onPracticeItemChange: (itemId: string, value: StoredPracticeItemProgress) =>
       setPracticeItem(
         updateActiveModule,
-        input.course,
-        activeModule,
+        practiceDeck,
         itemId,
         value,
       ),
@@ -191,20 +192,18 @@ function createModuleUpdater(
 
 function setPracticeItem(
   update: ReturnType<typeof createModuleUpdater>,
-  course: LanguageCourseDefinition,
-  module: CourseModule,
+  practiceDeck: ModulePracticeDeck,
   itemId: string,
   value: StoredPracticeItemProgress,
 ) {
   update((current) => ({
-    ...buildNextModuleProgress(current, course, module, itemId, value),
+    ...buildNextModuleProgress(current, practiceDeck, itemId, value),
   }));
 }
 
 function buildNextModuleProgress(
   current: StoredModuleProgress,
-  course: LanguageCourseDefinition,
-  module: CourseModule,
+  practiceDeck: ModulePracticeDeck,
   itemId: string,
   value: StoredPracticeItemProgress,
 ) {
@@ -212,7 +211,7 @@ function buildNextModuleProgress(
     ...current.practiceItems,
     [itemId]: value,
   };
-  const itemIds = buildPracticeCards(module, course.resources).map((item) => item.id);
+  const itemIds = practiceDeck.all.map((item) => item.id);
   const hasPracticeCards = itemIds.length > 0;
   const allDone =
     hasPracticeCards &&
