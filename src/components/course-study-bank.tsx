@@ -32,17 +32,13 @@ function SectionIntro(props: { moduleTitle: string; slug: CourseSlug }) {
   return (
     <div className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.03))] p-6">
       <p className="text-xs uppercase tracking-[0.32em] text-emerald-100">
-        {props.slug === "japanese" ? "れんしゅう" : "Live practice bank"}
+        Live practice bank
       </p>
       <h3 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white">
-        {props.slug === "japanese"
-          ? `${props.moduleTitle} を一語ずつれんしゅう`
-          : `Practice ${props.moduleTitle} one word at a time`}
+        {`Practice ${props.moduleTitle} one word at a time`}
       </h3>
       <p className="mt-4 max-w-4xl text-base leading-8 text-stone-200">
-        {props.slug === "japanese"
-          ? "日本語を聞いて、英語の意味を見て、声に出して、点数を見ながら一つずつ身につけましょう。"
-          : "Hear the Japanese, hear the English meaning, say it back, check the score, and move on only when you feel the word is truly locked in."}
+        Hear the Japanese, hear the English meaning, say it back, check the score, and move on only when you feel the word is truly locked in.
       </p>
     </div>
   );
@@ -299,7 +295,7 @@ export function CourseStudyBank(props: {
         onSave={props.onPracticeItemChange}
         progress={props.practiceItems}
         slug={props.slug}
-        title={props.slug === "japanese" ? "ことばを話す" : "Words To Say"}
+        title="Words To Say"
       />
       {props.practiceDeck.kanji.length > 0 ? (
         <PracticeCarousel
@@ -307,7 +303,7 @@ export function CourseStudyBank(props: {
           onSave={props.onPracticeItemChange}
           progress={props.practiceItems}
           slug={props.slug}
-          title={props.slug === "japanese" ? "漢字を読む" : "Kanji To Notice"}
+          title="Kanji To Notice"
         />
       ) : null}
     </section>

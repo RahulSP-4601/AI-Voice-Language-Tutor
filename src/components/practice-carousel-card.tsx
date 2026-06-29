@@ -3,10 +3,6 @@
 import { type StoredPracticeItemProgress } from "@/lib/course-progress";
 import { PRACTICE_PASS_SCORE, type PracticeCard } from "@/lib/module-practice";
 
-function isJapanese(slug: string) {
-  return slug === "japanese";
-}
-
 function Metric(props: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-black/20 px-4 py-3">
@@ -41,22 +37,24 @@ function ActionButton(props: {
 }
 
 function statusLabel(slug: string, progress?: StoredPracticeItemProgress) {
-  if (progress?.done) return isJapanese(slug) ? "合格して保存済み" : "Green and saved";
+  if (progress?.done) return "Green and saved";
   if ((progress?.lastScore ?? 0) >= PRACTICE_PASS_SCORE) {
-    return isJapanese(slug) ? "合格ラインです" : "Pass ready";
+    return "Pass ready";
   }
   if (typeof progress?.lastScore === "number") return `${progress.lastScore}/100`;
-  return isJapanese(slug) ? "れんしゅうできます" : "Ready to practice";
+  return "Ready to practice";
 }
 
 function formatMetric(slug: string, value?: number | null) {
-  return typeof value === "number" ? `${value}/100` : isJapanese(slug) ? "まだ" : "Pending";
+  void slug;
+  return typeof value === "number" ? `${value}/100` : "Pending";
 }
 
 function recordLabel(slug: string, isEvaluating: boolean, isRecording: boolean) {
-  if (isEvaluating) return isJapanese(slug) ? "さいてん中..." : "Scoring...";
-  if (isRecording) return isJapanese(slug) ? "ろく音を止める" : "Stop recording";
-  return isJapanese(slug) ? "こたえをろく音" : "Record my answer";
+  void slug;
+  if (isEvaluating) return "Scoring...";
+  if (isRecording) return "Stop recording";
+  return "Record my answer";
 }
 
 function CarouselHeader(props: {
@@ -70,14 +68,10 @@ function CarouselHeader(props: {
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <p className="text-xs uppercase tracking-[0.22em] text-stone-400">
-          {isJapanese(props.slug)
-            ? `${props.currentIndex + 1} / ${props.totalCount} カード`
-            : `Card ${props.currentIndex + 1} of ${props.totalCount}`}
+          {`Card ${props.currentIndex + 1} of ${props.totalCount}`}
         </p>
         <p className="mt-2 text-sm text-stone-300">
-          {isJapanese(props.slug)
-            ? `${props.doneCount}/${props.totalCount} 合格して保存済み`
-            : `${props.doneCount}/${props.totalCount} green and saved`}
+          {`${props.doneCount}/${props.totalCount} green and saved`}
         </p>
       </div>
       <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-stone-200">
@@ -97,7 +91,7 @@ function WordCopy(props: { item: PracticeCard; slug: string }) {
         {props.item.reading}
       </p>
       <p className="mt-2 text-sm text-stone-300">
-        {isJapanese(props.slug) ? "こう言ってみよう: " : "Say it like: "}
+        Say it like: 
         <span className="text-white">{props.item.phoneticHint}</span>
       </p>
       <p className="mt-4 text-xl text-stone-100">{props.item.english}</p>
@@ -110,25 +104,23 @@ function ScorePanel(props: { progress?: StoredPracticeItemProgress; slug: string
   return (
     <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <Metric
-        label={isJapanese(props.slug) ? "一致度" : "Match"}
+        label="Match"
         value={
           typeof props.progress?.lastScore === "number"
             ? `${props.progress.lastScore}/100`
-            : isJapanese(props.slug)
-              ? "まだ"
-              : "Pending"
+            : "Pending"
         }
       />
       <Metric
-        label={isJapanese(props.slug) ? "発音" : "Pronunciation"}
+        label="Pronunciation"
         value={formatMetric(props.slug, props.progress?.pronunciationScore)}
       />
       <Metric
-        label={isJapanese(props.slug) ? "正確さ" : "Accuracy"}
+        label="Accuracy"
         value={formatMetric(props.slug, props.progress?.accuracyScore)}
       />
       <Metric
-        label={isJapanese(props.slug) ? "なめらかさ" : "Fluency"}
+        label="Fluency"
         value={formatMetric(props.slug, props.progress?.fluencyScore)}
       />
     </div>
@@ -143,17 +135,15 @@ function TranscriptPanel(props: {
   return (
     <div className="mt-5 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
       <Metric
-        label={isJapanese(props.slug) ? "さいごのこたえ" : "Last answer"}
-        value={props.progress?.lastTranscript || (isJapanese(props.slug) ? "まだありません" : "No spoken answer yet")}
+        label="Last answer"
+        value={props.progress?.lastTranscript || "No spoken answer yet"}
       />
       <Metric
-        label={isJapanese(props.slug) ? "アドバイス" : "Coaching"}
+        label="Coaching"
         value={
           props.error ||
           props.progress?.coachingFeedback ||
-          (isJapanese(props.slug)
-            ? "お手本を聞いて、こたえをろく音して、75点以上を目指しましょう。"
-            : "Play the tutor line, record yourself, and aim for a clean exact match.")
+          "Play the tutor line, record yourself, and aim for a clean exact match."
         }
       />
     </div>
@@ -175,7 +165,7 @@ function PracticeActions(props: {
   return (
     <div className="mt-5 flex flex-wrap gap-3">
       <ActionButton
-        label={isJapanese(props.slug) ? "お手本を聞く" : "Play tutor line"}
+        label="Play tutor line"
         onClick={props.onPlay}
       />
       <ActionButton
@@ -186,18 +176,14 @@ function PracticeActions(props: {
       />
       <ActionButton
         disabled={!props.canMarkDone}
-        label={props.done ? (isJapanese(props.slug) ? "合格ずみ" : "Marked green") : (isJapanese(props.slug) ? "合格にする" : "Mark green")}
+        label={props.done ? "Marked green" : "Mark green"}
         muted={!props.canMarkDone}
         onClick={props.onMarkDone}
       />
       <span className="self-center text-sm text-stone-400">
         {props.canMoveNext
-          ? isJapanese(props.slug)
-            ? "次のカードへ進めます。"
-            : "You can move to the next card."
-          : isJapanese(props.slug)
-            ? "75点以上で合格にできます。"
-            : "Get a perfect match first, then mark this one green."}
+          ? "You can move to the next card."
+          : "Get a perfect match first, then mark this one green."}
       </span>
     </div>
   );
@@ -214,13 +200,13 @@ function NavigationBar(props: {
     <div className="mt-5 flex flex-wrap gap-3">
       <ActionButton
         disabled={!props.canGoPrev}
-        label={isJapanese(props.slug) ? "前へ" : "Previous"}
+        label="Previous"
         muted={!props.canGoPrev}
         onClick={props.onPrev}
       />
       <ActionButton
         disabled={!props.canGoNext}
-        label={isJapanese(props.slug) ? "次へ" : "Next"}
+        label="Next"
         muted={!props.canGoNext}
         onClick={props.onNext}
       />
