@@ -48,6 +48,7 @@ function buildFormData(input: {
   const formData = new FormData();
   formData.set("audio", input.audioBlob, `${input.item.id}.webm`);
   formData.set("english", input.item.english);
+  formData.set("phoneticHint", input.item.phoneticHint);
   formData.set("japanese", input.item.japanese);
   formData.set("reading", input.item.reading);
   formData.set("slug", input.slug);

@@ -99,6 +99,7 @@ export async function POST(request: Request) {
       contentType: parsed.audioFile.type || "audio/webm",
       deepgramKey: env.deepgramKey,
       deepgramModel: env.deepgramModel,
+      slug: parsed.slug,
     });
     const scorecard = await scoreLessonWithOpenAi({
       deepgram,
@@ -109,7 +110,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      buildLessonEvaluation(deepgram, scorecard, lookup.lesson),
+      buildLessonEvaluation(deepgram, scorecard, lookup.lesson, parsed.slug),
     );
   } catch (error) {
     const message =

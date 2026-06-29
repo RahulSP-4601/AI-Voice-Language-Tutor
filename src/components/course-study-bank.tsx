@@ -10,10 +10,12 @@ import {
 } from "@/lib/course-definitions";
 import { type StoredPracticeItemProgress } from "@/lib/course-progress";
 import {
+  PRACTICE_PASS_SCORE,
   scorePracticeTranscript,
   type ModulePracticeDeck,
   type PracticeCard,
 } from "@/lib/module-practice";
+import { getSpeechSupport } from "@/lib/language-speech";
 
 function SectionShell(props: { children: React.ReactNode; title: string }) {
   return (
@@ -26,18 +28,21 @@ function SectionShell(props: { children: React.ReactNode; title: string }) {
   );
 }
 
-function SectionIntro(props: { moduleTitle: string }) {
+function SectionIntro(props: { moduleTitle: string; slug: CourseSlug }) {
   return (
     <div className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.03))] p-6">
       <p className="text-xs uppercase tracking-[0.32em] text-emerald-100">
-        Live practice bank
+        {props.slug === "japanese" ? "れんしゅう" : "Live practice bank"}
       </p>
       <h3 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white">
-        Practice {props.moduleTitle} one word at a time
+        {props.slug === "japanese"
+          ? `${props.moduleTitle} を一語ずつれんしゅう`
+          : `Practice ${props.moduleTitle} one word at a time`}
       </h3>
       <p className="mt-4 max-w-4xl text-base leading-8 text-stone-200">
-        Hear the Japanese, hear the English meaning, say it back, check the
-        score, and move on only when you feel the word is truly locked in.
+        {props.slug === "japanese"
+          ? "日本語を聞いて、英語の意味を見て、声に出して、点数を見ながら一つずつ身につけましょう。"
+          : "Hear the Japanese, hear the English meaning, say it back, check the score, and move on only when you feel the word is truly locked in."}
       </p>
     </div>
   );
@@ -51,14 +56,14 @@ function EmptyState(props: { message: string }) {
   );
 }
 
-function isPerfectScore(score?: number | null) {
-  return score === 100;
+function isPassScore(score?: number | null) {
+  return typeof score === "number" && score >= PRACTICE_PASS_SCORE;
 }
 
 function speakPrompt(item: PracticeCard, slug: CourseSlug) {
   window.speechSynthesis.cancel();
   const japanese = new SpeechSynthesisUtterance(item.japanese);
-  japanese.lang = slug === "japanese" ? "ja-JP" : "en-US";
+  japanese.lang = getSpeechSupport(slug).speechSynthesisLanguage;
   const english = new SpeechSynthesisUtterance(`In English, this means ${item.english}.`);
   english.lang = "en-US";
   japanese.onend = () => window.speechSynthesis.speak(english);
@@ -89,6 +94,7 @@ function usePracticeSelection(
 function createStoredProgress(
   item: PracticeCard,
   transcript: string,
+  slug: CourseSlug,
   metrics: {
     accuracyScore: number;
     coachingFeedback: string;
@@ -102,7 +108,12 @@ function createStoredProgress(
     coachingFeedback: metrics.coachingFeedback,
     done: current?.done ?? false,
     fluencyScore: metrics.fluencyScore,
-    lastScore: scorePracticeTranscript(item, transcript),
+    lastScore: Math.max(
+      scorePracticeTranscript(item, transcript, slug),
+      Math.round(
+        (metrics.pronunciationScore + metrics.accuracyScore + metrics.fluencyScore) / 3,
+      ),
+    ),
     lastTranscript: transcript,
     practicedAt: new Date().toISOString(),
     pronunciationScore: metrics.pronunciationScore,
@@ -135,11 +146,11 @@ function buildCarouselState(input: {
   return {
     canGoNext:
       input.selectedIndex < input.items.length - 1 &&
-      (isPerfectScore(current?.lastScore) ||
+      (isPassScore(current?.lastScore) ||
         Boolean(current?.done) ||
         input.selectedIndex < doneCount),
     canGoPrev: input.selectedIndex > 0,
-    canMarkDone: isPerfectScore(current?.lastScore) || Boolean(current?.done),
+    canMarkDone: isPassScore(current?.lastScore) || Boolean(current?.done),
     current,
     doneCount,
     isRecording:
@@ -187,6 +198,7 @@ function buildCardProps(input: {
         setRecordingItemId: input.setRecordingItemId,
         slug: input.slug,
       }),
+    slug: input.slug,
     supported: input.recorder.supported,
     totalCount: input.items.length,
   };
@@ -262,7 +274,13 @@ async function handleRecord(input: {
 
   input.onSave(
     input.item.id,
-    createStoredProgress(input.item, result.transcript, result, input.progress),
+    createStoredProgress(
+      input.item,
+      result.transcript,
+      input.slug,
+      result,
+      input.progress,
+    ),
   );
 }
 
@@ -275,13 +293,13 @@ export function CourseStudyBank(props: {
 }) {
   return (
     <section className="space-y-4">
-      <SectionIntro moduleTitle={props.module.title} />
+      <SectionIntro moduleTitle={props.module.title} slug={props.slug} />
       <PracticeCarousel
         items={props.practiceDeck.words}
         onSave={props.onPracticeItemChange}
         progress={props.practiceItems}
         slug={props.slug}
-        title="Words To Say"
+        title={props.slug === "japanese" ? "ことばを話す" : "Words To Say"}
       />
       {props.practiceDeck.kanji.length > 0 ? (
         <PracticeCarousel
@@ -289,7 +307,7 @@ export function CourseStudyBank(props: {
           onSave={props.onPracticeItemChange}
           progress={props.practiceItems}
           slug={props.slug}
-          title="Kanji To Notice"
+          title={props.slug === "japanese" ? "漢字を読む" : "Kanji To Notice"}
         />
       ) : null}
     </section>

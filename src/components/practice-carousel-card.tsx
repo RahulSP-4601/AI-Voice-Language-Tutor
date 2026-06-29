@@ -1,7 +1,11 @@
 "use client";
 
 import { type StoredPracticeItemProgress } from "@/lib/course-progress";
-import { type PracticeCard } from "@/lib/module-practice";
+import { PRACTICE_PASS_SCORE, type PracticeCard } from "@/lib/module-practice";
+
+function isJapanese(slug: string) {
+  return slug === "japanese";
+}
 
 function Metric(props: { label: string; value: string }) {
   return (
@@ -36,47 +40,54 @@ function ActionButton(props: {
   );
 }
 
-function statusLabel(progress?: StoredPracticeItemProgress) {
-  if (progress?.done) return "Green and saved";
-  if (progress?.lastScore === 100) return "Perfect match ready";
-  if (typeof progress?.lastScore === "number") return `${progress.lastScore}/100 match`;
-  return "Ready to practice";
+function statusLabel(slug: string, progress?: StoredPracticeItemProgress) {
+  if (progress?.done) return isJapanese(slug) ? "合格して保存済み" : "Green and saved";
+  if ((progress?.lastScore ?? 0) >= PRACTICE_PASS_SCORE) {
+    return isJapanese(slug) ? "合格ラインです" : "Pass ready";
+  }
+  if (typeof progress?.lastScore === "number") return `${progress.lastScore}/100`;
+  return isJapanese(slug) ? "れんしゅうできます" : "Ready to practice";
 }
 
-function formatMetric(value?: number | null) {
-  return typeof value === "number" ? `${value}/100` : "Pending";
+function formatMetric(slug: string, value?: number | null) {
+  return typeof value === "number" ? `${value}/100` : isJapanese(slug) ? "まだ" : "Pending";
 }
 
-function recordLabel(isEvaluating: boolean, isRecording: boolean) {
-  if (isEvaluating) return "Scoring...";
-  if (isRecording) return "Stop recording";
-  return "Record my answer";
+function recordLabel(slug: string, isEvaluating: boolean, isRecording: boolean) {
+  if (isEvaluating) return isJapanese(slug) ? "さいてん中..." : "Scoring...";
+  if (isRecording) return isJapanese(slug) ? "ろく音を止める" : "Stop recording";
+  return isJapanese(slug) ? "こたえをろく音" : "Record my answer";
 }
 
 function CarouselHeader(props: {
   currentIndex: number;
   doneCount: number;
   progress?: StoredPracticeItemProgress;
+  slug: string;
   totalCount: number;
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <p className="text-xs uppercase tracking-[0.22em] text-stone-400">
-          Card {props.currentIndex + 1} of {props.totalCount}
+          {isJapanese(props.slug)
+            ? `${props.currentIndex + 1} / ${props.totalCount} カード`
+            : `Card ${props.currentIndex + 1} of ${props.totalCount}`}
         </p>
         <p className="mt-2 text-sm text-stone-300">
-          {props.doneCount}/{props.totalCount} green and saved
+          {isJapanese(props.slug)
+            ? `${props.doneCount}/${props.totalCount} 合格して保存済み`
+            : `${props.doneCount}/${props.totalCount} green and saved`}
         </p>
       </div>
       <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-stone-200">
-        {statusLabel(props.progress)}
+        {statusLabel(props.slug, props.progress)}
       </span>
     </div>
   );
 }
 
-function WordCopy(props: { item: PracticeCard }) {
+function WordCopy(props: { item: PracticeCard; slug: string }) {
   return (
     <>
       <p className="mt-5 text-[2.35rem] font-semibold tracking-[-0.04em] text-white">
@@ -86,7 +97,8 @@ function WordCopy(props: { item: PracticeCard }) {
         {props.item.reading}
       </p>
       <p className="mt-2 text-sm text-stone-300">
-        Say it like: <span className="text-white">{props.item.phoneticHint}</span>
+        {isJapanese(props.slug) ? "こう言ってみよう: " : "Say it like: "}
+        <span className="text-white">{props.item.phoneticHint}</span>
       </p>
       <p className="mt-4 text-xl text-stone-100">{props.item.english}</p>
       <p className="mt-4 text-sm leading-7 text-stone-400">{props.item.example}</p>
@@ -94,23 +106,31 @@ function WordCopy(props: { item: PracticeCard }) {
   );
 }
 
-function ScorePanel(props: { progress?: StoredPracticeItemProgress }) {
+function ScorePanel(props: { progress?: StoredPracticeItemProgress; slug: string }) {
   return (
     <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <Metric
-        label="Match"
+        label={isJapanese(props.slug) ? "一致度" : "Match"}
         value={
           typeof props.progress?.lastScore === "number"
             ? `${props.progress.lastScore}/100`
-            : "Pending"
+            : isJapanese(props.slug)
+              ? "まだ"
+              : "Pending"
         }
       />
       <Metric
-        label="Pronunciation"
-        value={formatMetric(props.progress?.pronunciationScore)}
+        label={isJapanese(props.slug) ? "発音" : "Pronunciation"}
+        value={formatMetric(props.slug, props.progress?.pronunciationScore)}
       />
-      <Metric label="Accuracy" value={formatMetric(props.progress?.accuracyScore)} />
-      <Metric label="Fluency" value={formatMetric(props.progress?.fluencyScore)} />
+      <Metric
+        label={isJapanese(props.slug) ? "正確さ" : "Accuracy"}
+        value={formatMetric(props.slug, props.progress?.accuracyScore)}
+      />
+      <Metric
+        label={isJapanese(props.slug) ? "なめらかさ" : "Fluency"}
+        value={formatMetric(props.slug, props.progress?.fluencyScore)}
+      />
     </div>
   );
 }
@@ -118,19 +138,22 @@ function ScorePanel(props: { progress?: StoredPracticeItemProgress }) {
 function TranscriptPanel(props: {
   error?: string;
   progress?: StoredPracticeItemProgress;
+  slug: string;
 }) {
   return (
     <div className="mt-5 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
       <Metric
-        label="Last answer"
-        value={props.progress?.lastTranscript || "No spoken answer yet"}
+        label={isJapanese(props.slug) ? "さいごのこたえ" : "Last answer"}
+        value={props.progress?.lastTranscript || (isJapanese(props.slug) ? "まだありません" : "No spoken answer yet")}
       />
       <Metric
-        label="Coaching"
+        label={isJapanese(props.slug) ? "アドバイス" : "Coaching"}
         value={
           props.error ||
           props.progress?.coachingFeedback ||
-          "Play the tutor line, record yourself, and aim for a clean exact match."
+          (isJapanese(props.slug)
+            ? "お手本を聞いて、こたえをろく音して、75点以上を目指しましょう。"
+            : "Play the tutor line, record yourself, and aim for a clean exact match.")
         }
       />
     </div>
@@ -146,27 +169,35 @@ function PracticeActions(props: {
   onMarkDone: () => void;
   onPlay: () => void;
   onRecord: () => void;
+  slug: string;
   supported: boolean;
 }) {
   return (
     <div className="mt-5 flex flex-wrap gap-3">
-      <ActionButton label="Play tutor line" onClick={props.onPlay} />
+      <ActionButton
+        label={isJapanese(props.slug) ? "お手本を聞く" : "Play tutor line"}
+        onClick={props.onPlay}
+      />
       <ActionButton
         disabled={!props.supported || props.isEvaluating}
-        label={recordLabel(props.isEvaluating, props.isRecording)}
+        label={recordLabel(props.slug, props.isEvaluating, props.isRecording)}
         muted={!props.supported || props.isEvaluating}
         onClick={props.onRecord}
       />
       <ActionButton
         disabled={!props.canMarkDone}
-        label={props.done ? "Marked green" : "Mark green"}
+        label={props.done ? (isJapanese(props.slug) ? "合格ずみ" : "Marked green") : (isJapanese(props.slug) ? "合格にする" : "Mark green")}
         muted={!props.canMarkDone}
         onClick={props.onMarkDone}
       />
       <span className="self-center text-sm text-stone-400">
         {props.canMoveNext
-          ? "You can move to the next card."
-          : "Get a perfect match first, then mark this one green."}
+          ? isJapanese(props.slug)
+            ? "次のカードへ進めます。"
+            : "You can move to the next card."
+          : isJapanese(props.slug)
+            ? "75点以上で合格にできます。"
+            : "Get a perfect match first, then mark this one green."}
       </span>
     </div>
   );
@@ -177,18 +208,19 @@ function NavigationBar(props: {
   canGoPrev: boolean;
   onNext: () => void;
   onPrev: () => void;
+  slug: string;
 }) {
   return (
     <div className="mt-5 flex flex-wrap gap-3">
       <ActionButton
         disabled={!props.canGoPrev}
-        label="Previous"
+        label={isJapanese(props.slug) ? "前へ" : "Previous"}
         muted={!props.canGoPrev}
         onClick={props.onPrev}
       />
       <ActionButton
         disabled={!props.canGoNext}
-        label="Next"
+        label={isJapanese(props.slug) ? "次へ" : "Next"}
         muted={!props.canGoNext}
         onClick={props.onNext}
       />
@@ -196,7 +228,7 @@ function NavigationBar(props: {
   );
 }
 
-export function PracticeCarouselCard(props: {
+type PracticeCarouselCardProps = {
   canGoNext: boolean;
   canGoPrev: boolean;
   canMarkDone: boolean;
@@ -212,20 +244,24 @@ export function PracticeCarouselCard(props: {
   onPlay: () => void;
   onPrev: () => void;
   onRecord: () => void;
+  slug: string;
   supported: boolean;
   totalCount: number;
-}) {
+};
+
+function PracticeCarouselBody(props: PracticeCarouselCardProps) {
   return (
     <>
       <CarouselHeader
         currentIndex={props.currentIndex}
         doneCount={props.doneCount}
         progress={props.current}
+        slug={props.slug}
         totalCount={props.totalCount}
       />
-      <WordCopy item={props.item} />
-      <ScorePanel progress={props.current} />
-      <TranscriptPanel error={props.error} progress={props.current} />
+      <WordCopy item={props.item} slug={props.slug} />
+      <ScorePanel progress={props.current} slug={props.slug} />
+      <TranscriptPanel error={props.error} progress={props.current} slug={props.slug} />
       <PracticeActions
         canMarkDone={props.canMarkDone}
         canMoveNext={props.canGoNext}
@@ -235,6 +271,7 @@ export function PracticeCarouselCard(props: {
         onMarkDone={props.onMarkDone}
         onPlay={props.onPlay}
         onRecord={props.onRecord}
+        slug={props.slug}
         supported={props.supported}
       />
       <NavigationBar
@@ -242,7 +279,12 @@ export function PracticeCarouselCard(props: {
         canGoPrev={props.canGoPrev}
         onNext={props.onNext}
         onPrev={props.onPrev}
+        slug={props.slug}
       />
     </>
   );
+}
+
+export function PracticeCarouselCard(props: PracticeCarouselCardProps) {
+  return <PracticeCarouselBody {...props} />;
 }

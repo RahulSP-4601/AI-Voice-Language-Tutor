@@ -1,4 +1,8 @@
 import { type CourseLesson, type CourseSlug, type LessonEvaluation } from "@/lib/course-definitions";
+import {
+  buildSpeechScoreBand,
+  getSpeechSupport,
+} from "@/lib/language-speech";
 
 type DeepgramResult = {
   confidence: number;
@@ -6,32 +10,18 @@ type DeepgramResult = {
 };
 
 type OpenAiScorecard = Omit<LessonEvaluation, "deepgramConfidence" | "transcript">;
-type ScoreBand = {
-  accuracyScore: number;
-  fluencyScore: number;
-  matchedExpectedPhrase: boolean;
-  pronunciationScore: number;
-  shouldAdvance: boolean;
-};
-
-function getLanguageLabel(slug: CourseSlug) {
-  if (slug === "japanese") return "Japanese";
-  if (slug === "german") return "German";
-  if (slug === "spanish") return "Spanish";
-  if (slug === "french") return "French";
-  return "English";
-}
-
 export async function transcribeWithDeepgram(input: {
   audioBuffer: ArrayBuffer;
   contentType: string;
   deepgramKey: string;
   deepgramModel: string;
+  slug: CourseSlug;
 }) {
+  const support = getSpeechSupport(input.slug);
   const response = await fetch(
     `https://api.deepgram.com/v1/listen?model=${encodeURIComponent(
       input.deepgramModel,
-    )}&smart_format=true`,
+    )}&smart_format=true&language=${encodeURIComponent(support.deepgramLanguage)}`,
     {
       body: input.audioBuffer,
       headers: {
@@ -104,6 +94,7 @@ function buildOpenAiBody(input: {
   openAiModel: string;
   slug: CourseSlug;
 }) {
+  const support = getSpeechSupport(input.slug);
   return {
     model: input.openAiModel,
     response_format: { type: "json_object" },
@@ -114,13 +105,16 @@ function buildOpenAiBody(input: {
           "You are a strict but encouraging speaking evaluator for a premium language-learning product.",
           "Return JSON only with pronunciationScore, accuracyScore, fluencyScore, coachingFeedback, matchedExpectedPhrase, shouldAdvance.",
           "Scores must feel professional and stable, not random.",
+          "This learner is a beginner, so close phonetic attempts should not be punished harshly.",
+          "Any overall result at 75 or above should be treated as a pass and shouldAdvance true.",
+          "For Japanese, accept near beginner-English renderings when they are clearly close to the target sound.",
           "Use this scale:",
           "85-100: clear, natural, and target-faithful.",
           "70-84: understandable with minor issues.",
           "50-69: partly correct but noticeable mistakes.",
           "0-49: target missed significantly.",
           "Do not give extreme low scores for near-correct beginner attempts.",
-          "Coaching feedback must be short, specific, and professional.",
+          `Coaching feedback must be short, specific, professional, and written in ${support.feedbackLanguage}.`,
         ].join(" "),
       },
       {
@@ -128,7 +122,7 @@ function buildOpenAiBody(input: {
         content: JSON.stringify({
           acceptableResponses: input.lesson.acceptableResponses,
           confidence: input.deepgram.confidence,
-          language: getLanguageLabel(input.slug),
+          language: support.label,
           learnerGoal: input.lesson.replyPrompt,
           lessonPhrase: input.lesson.demoPhrase,
           transcript: input.deepgram.transcript,
@@ -165,9 +159,10 @@ export function buildLessonEvaluation(
   deepgram: DeepgramResult,
   scorecard: OpenAiScorecard,
   lesson?: Pick<CourseLesson, "acceptableResponses" | "demoPhrase">,
+  slug: CourseSlug = "english",
 ) {
   const calibrated = lesson
-    ? calibrateScorecard(scorecard, deepgram, lesson)
+    ? calibrateScorecard(scorecard, deepgram, lesson, slug)
     : scorecard;
 
   return {
@@ -181,11 +176,22 @@ function calibrateScorecard(
   scorecard: OpenAiScorecard,
   deepgram: DeepgramResult,
   lesson: Pick<CourseLesson, "acceptableResponses" | "demoPhrase">,
+  slug: CourseSlug,
 ) {
-  const band = getScoreBand(deepgram.transcript, deepgram.confidence, lesson);
+  const band = getScoreBand(deepgram.transcript, deepgram.confidence, lesson, slug);
+  if (band.shouldAdvance) {
+    return buildDeterministicPass(scorecard, lesson.demoPhrase, slug, band);
+  }
+
+  const overall = Math.round(
+    (Math.max(scorecard.pronunciationScore, band.pronunciationScore) +
+      Math.max(scorecard.accuracyScore, band.accuracyScore) +
+      Math.max(scorecard.fluencyScore, band.fluencyScore)) /
+      3,
+  );
   return {
     accuracyScore: Math.max(scorecard.accuracyScore, band.accuracyScore),
-    coachingFeedback: scorecard.coachingFeedback,
+    coachingFeedback: fallbackCoaching(scorecard.coachingFeedback, lesson.demoPhrase, slug, false),
     fluencyScore: Math.max(scorecard.fluencyScore, band.fluencyScore),
     matchedExpectedPhrase:
       scorecard.matchedExpectedPhrase || band.matchedExpectedPhrase,
@@ -193,7 +199,23 @@ function calibrateScorecard(
       scorecard.pronunciationScore,
       band.pronunciationScore,
     ),
-    shouldAdvance: scorecard.shouldAdvance || band.shouldAdvance,
+    shouldAdvance: scorecard.shouldAdvance || band.shouldAdvance || overall >= 75,
+  } satisfies OpenAiScorecard;
+}
+
+function buildDeterministicPass(
+  scorecard: OpenAiScorecard,
+  phrase: string,
+  slug: CourseSlug,
+  band: ReturnType<typeof getScoreBand>,
+) {
+  return {
+    accuracyScore: Math.max(scorecard.accuracyScore, band.accuracyScore),
+    coachingFeedback: fallbackCoaching(scorecard.coachingFeedback, phrase, slug, true),
+    fluencyScore: Math.max(scorecard.fluencyScore, band.fluencyScore),
+    matchedExpectedPhrase: true,
+    pronunciationScore: Math.max(scorecard.pronunciationScore, band.pronunciationScore),
+    shouldAdvance: true,
   } satisfies OpenAiScorecard;
 }
 
@@ -201,34 +223,24 @@ function getScoreBand(
   transcript: string,
   confidence: number,
   lesson: Pick<CourseLesson, "acceptableResponses" | "demoPhrase">,
+  slug: CourseSlug,
 ) {
   if (!transcript.trim()) {
     return emptyScoreBand();
   }
-
-  const similarity = getBestSimilarity(transcript, [
-    lesson.demoPhrase,
-    ...lesson.acceptableResponses,
-  ]);
-  const blended = similarity * 0.85 + Math.max(confidence, 0.35) * 0.15;
-
-  if (blended >= 0.9) {
-    return createScoreBand(90, 92, 86, true, true);
-  }
-
-  if (blended >= 0.78) {
-    return createScoreBand(78, 82, 72, true, true);
-  }
-
-  if (blended >= 0.62) {
-    return createScoreBand(66, 70, 62, true, false);
-  }
-
-  if (blended >= 0.45) {
-    return createScoreBand(52, 56, 50, false, false);
-  }
-
-  return emptyScoreBand();
+  const band = buildSpeechScoreBand(
+    slug,
+    transcript,
+    [lesson.demoPhrase, ...lesson.acceptableResponses],
+    confidence,
+  );
+  return createScoreBand(
+    band.pronunciationScore,
+    band.accuracyScore,
+    band.fluencyScore,
+    band.matchedExpectedPhrase,
+    band.shouldAdvance,
+  );
 }
 
 function emptyScoreBand() {
@@ -248,60 +260,44 @@ function createScoreBand(
     matchedExpectedPhrase,
     pronunciationScore,
     shouldAdvance,
-  } satisfies ScoreBand;
+  };
 }
 
-function getBestSimilarity(transcript: string, candidates: string[]) {
-  const normalizedTranscript = normalizeComparableText(transcript);
-  return candidates.reduce((best, candidate) => {
-    const similarity = getPhraseSimilarity(
-      normalizedTranscript,
-      normalizeComparableText(candidate),
-    );
-    return Math.max(best, similarity);
-  }, 0);
-}
-
-function getPhraseSimilarity(source: string, target: string) {
-  if (!source || !target) return 0;
-  if (source === target) return 1;
-  if (source.includes(target) || target.includes(source)) return 0.88;
-  const sourceTokens = source.split(" ");
-  const targetTokens = target.split(" ");
-  const sharedTokens = sourceTokens.filter((token) => targetTokens.includes(token));
-  const tokenScore = sharedTokens.length / Math.max(sourceTokens.length, targetTokens.length, 1);
-  const bigramScore = getBigramScore(source, target);
-  return Number(((tokenScore * 0.55) + (bigramScore * 0.45)).toFixed(2));
-}
-
-function normalizeComparableText(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function getBigramScore(source: string, target: string) {
-  const sourceBigrams = toBigrams(source);
-  const targetBigrams = toBigrams(target);
-
-  if (!sourceBigrams.length || !targetBigrams.length) {
-    return 0;
+function fallbackCoaching(
+  feedback: string,
+  phrase: string,
+  slug: CourseSlug,
+  passed: boolean,
+) {
+  if (slug !== "japanese" && feedback.trim()) {
+    return feedback;
   }
 
-  const targetSet = new Set(targetBigrams);
-  const matches = sourceBigrams.filter((value) => targetSet.has(value)).length;
-  return (2 * matches) / (sourceBigrams.length + targetBigrams.length);
-}
-
-function toBigrams(value: string) {
-  if (value.length < 2) {
-    return [value];
+  if (slug === "japanese") {
+    return passed
+      ? `いいですね。『${phrase}』にかなり近いです。このまま次へ進みましょう。`
+      : `おしいです。『${phrase}』に近づいています。母音をはっきり、もう一回ゆっくり言ってみましょう。`;
   }
 
-  const compact = value.replace(/\s+/g, " ");
-  return Array.from({ length: compact.length - 1 }, (_, index) =>
-    compact.slice(index, index + 2),
-  );
+  if (slug === "german") {
+    return passed
+      ? `Gut gemacht. Das kommt dem Zielwort schon sehr nahe.`
+      : `Fast richtig. Sprich es noch einmal langsamer und klarer.`;
+  }
+
+  if (slug === "spanish") {
+    return passed
+      ? "Muy bien. Ya suena muy cerca de la palabra objetivo."
+      : "Casi. Dilo otra vez un poco mas despacio y con vocales claras.";
+  }
+
+  if (slug === "french") {
+    return passed
+      ? "Tres bien. C'est deja tres proche du mot cible."
+      : "Presque. Redis-le plus lentement avec des voyelles plus nettes.";
+  }
+
+  return passed
+    ? "Good job. That is close enough to the target phrase to move on."
+    : "Close attempt. Try it once more with a slower, cleaner sound.";
 }

@@ -1,11 +1,13 @@
 import {
   type CourseLesson,
+  type CourseSlug,
   type CourseModule,
   type KanjiEntry,
   type LanguageCourseDefinition,
   type LanguageCourseResources,
   type VocabularyEntry,
 } from "@/lib/course-definitions";
+import { scoreSpeechAttempt } from "@/lib/language-speech";
 import { generatePronunciationHint } from "@/lib/pronunciation-hint";
 
 export type PracticeKind = "kanji" | "word";
@@ -27,6 +29,8 @@ export type ModulePracticeDeck = {
   kanji: PracticeCard[];
   words: PracticeCard[];
 };
+
+export const PRACTICE_PASS_SCORE = 75;
 
 function normalize(value: string) {
   return value.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim();
@@ -280,56 +284,14 @@ function fallbackLessonMeaning(lesson: CourseLesson) {
   return title ? `${title} (${lesson.demoPhrase})` : null;
 }
 
-export function scorePracticeTranscript(expected: PracticeCard, transcript: string) {
-  const value = normalize(transcript);
-  if (!value) return 0;
-
-  const targets = [expected.japanese, expected.reading].map(normalize);
-  if (targets.includes(value)) return 100;
-  if (targets.some((target) => isNearExactMatch(target, value))) return 84;
-  return 0;
-}
-
-function isNearExactMatch(target: string, value: string) {
-  if (Math.abs(target.length - value.length) > 1) return false;
-  if (!sameWordCount(target, value)) return false;
-  return withinSingleEdit(target, value);
-}
-
-function sameWordCount(left: string, right: string) {
-  return left.split(/\s+/).length === right.split(/\s+/).length;
-}
-
-function withinSingleEdit(left: string, right: string) {
-  if (left === right) return true;
-
-  let i = 0;
-  let j = 0;
-  let edits = 0;
-
-  while (i < left.length && j < right.length) {
-    if (left[i] === right[j]) {
-      i += 1;
-      j += 1;
-      continue;
-    }
-
-    edits += 1;
-    if (edits > 1) return false;
-
-    if (left.length > right.length) {
-      i += 1;
-    } else if (right.length > left.length) {
-      j += 1;
-    } else {
-      i += 1;
-      j += 1;
-    }
-  }
-
-  if (i < left.length || j < right.length) {
-    edits += 1;
-  }
-
-  return edits <= 1;
+export function scorePracticeTranscript(
+  expected: PracticeCard,
+  transcript: string,
+  slug: CourseSlug,
+) {
+  return scoreSpeechAttempt(slug, transcript, [
+    expected.japanese,
+    expected.reading,
+    expected.phoneticHint,
+  ]);
 }

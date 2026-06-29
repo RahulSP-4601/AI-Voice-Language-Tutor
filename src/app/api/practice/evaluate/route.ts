@@ -20,6 +20,7 @@ async function parsePracticeRequest(request: Request) {
   const slug = String(formData.get("slug") ?? "");
   const japanese = String(formData.get("japanese") ?? "");
   const reading = String(formData.get("reading") ?? "");
+  const phoneticHint = String(formData.get("phoneticHint") ?? "");
   const english = String(formData.get("english") ?? "");
   const audioFile = formData.get("audio");
 
@@ -32,20 +33,21 @@ async function parsePracticeRequest(request: Request) {
     return null;
   }
 
-  return { audioFile, english, japanese, reading, slug };
+  return { audioFile, english, japanese, phoneticHint, reading, slug };
 }
 
 function buildPracticeLesson(input: {
   english: string;
   japanese: string;
+  phoneticHint: string;
   reading: string;
 }) {
   return {
-    acceptableResponses: [input.japanese, input.reading],
+    acceptableResponses: [input.japanese, input.reading, input.phoneticHint].filter(Boolean),
     demoPhrase: input.japanese,
     durationMinutes: 1,
     feedback: {
-      correctionStyle: "Keep the correction short and speaking-focused.",
+      correctionStyle: "Keep the correction short, warm, and beginner-friendly in Japanese.",
       focus: "Clear spoken practice",
       retryCue: "Try one cleaner repetition.",
       successSignal: "The learner can say the target naturally.",
@@ -53,7 +55,7 @@ function buildPracticeLesson(input: {
     id: "practice-card",
     learnerOutcome: `Learner can say ${input.english || input.reading}.`,
     mode: "speaking",
-    replyPrompt: `Say ${input.reading} clearly once.`,
+    replyPrompt: `Say ${input.reading} clearly once. A close beginner pronunciation can still pass.`,
     targetPattern: input.reading,
     title: input.english || input.reading,
     turns: [],
@@ -81,6 +83,7 @@ export async function POST(request: Request) {
       contentType: parsed.audioFile.type || "audio/webm",
       deepgramKey: env.deepgramKey,
       deepgramModel: env.deepgramModel,
+      slug: parsed.slug,
     });
     const scorecard = await scoreLessonWithOpenAi({
       deepgram,
@@ -90,7 +93,9 @@ export async function POST(request: Request) {
       slug: parsed.slug,
     });
 
-    return NextResponse.json(buildLessonEvaluation(deepgram, scorecard, lesson));
+    return NextResponse.json(
+      buildLessonEvaluation(deepgram, scorecard, lesson, parsed.slug),
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Practice evaluation failed.";

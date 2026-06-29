@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { buildJlptN5CourseStructure } from "./jlpt-n5-course-structure.mjs";
 import { loadLocalEnv } from "./load-local-env.mjs";
+import { generatePronunciationHint } from "./pronunciation-hint.mjs";
 import { upsertRows } from "./supabase-admin-rest.mjs";
 
 const INPUT_FILE = path.resolve(process.cwd(), "data", "jlpt-n5-words.json");
@@ -42,7 +43,7 @@ function buildEntryRows(words, categories) {
     language_slug: "japanese",
     japanese: word.japanese,
     romaji: word.reading,
-    phonetic_hint: word.phoneticHint || "",
+    phonetic_hint: word.phoneticHint || generatePronunciationHint(word.reading),
     english: word.english,
     example: word.example || `${word.japanese} means ${word.english}.`,
     sort_order: index + 1,

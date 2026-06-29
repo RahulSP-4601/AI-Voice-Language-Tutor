@@ -321,7 +321,7 @@ function hasKana(value: string) {
   return /[\u3040-\u30ff]/.test(value);
 }
 
-function kanaToRomaji(value: string) {
+export function kanaToRomaji(value: string) {
   let result = "";
   let index = 0;
 
