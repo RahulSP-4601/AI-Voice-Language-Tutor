@@ -85,6 +85,9 @@ function WordCopy(props: { item: PracticeCard }) {
       <p className="mt-3 text-sm uppercase tracking-[0.18em] text-amber-100">
         {props.item.reading}
       </p>
+      <p className="mt-2 text-sm text-stone-300">
+        Say it like: <span className="text-white">{props.item.phoneticHint}</span>
+      </p>
       <p className="mt-4 text-xl text-stone-100">{props.item.english}</p>
       <p className="mt-4 text-sm leading-7 text-stone-400">{props.item.example}</p>
     </>

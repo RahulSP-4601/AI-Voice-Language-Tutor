@@ -42,6 +42,7 @@ function buildEntryRows(words, categories) {
     language_slug: "japanese",
     japanese: word.japanese,
     romaji: word.reading,
+    phonetic_hint: word.phoneticHint || "",
     english: word.english,
     example: word.example || `${word.japanese} means ${word.english}.`,
     sort_order: index + 1,

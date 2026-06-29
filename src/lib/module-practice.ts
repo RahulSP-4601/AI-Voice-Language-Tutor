@@ -6,6 +6,7 @@ import {
   type LanguageCourseResources,
   type VocabularyEntry,
 } from "@/lib/course-definitions";
+import { generatePronunciationHint } from "@/lib/pronunciation-hint";
 
 export type PracticeKind = "kanji" | "word";
 
@@ -15,6 +16,7 @@ export type PracticeCard = {
   id: string;
   japanese: string;
   kind: PracticeKind;
+  phoneticHint: string;
   reading: string;
   sortOrder: number;
   title: string;
@@ -45,6 +47,7 @@ function wordCards(entries: VocabularyEntry[], title: string) {
     id: buildWordId(entry),
     japanese: entry.japanese,
     kind: "word" as const,
+    phoneticHint: entry.phoneticHint || generatePronunciationHint(entry.romaji),
     reading: entry.romaji,
     sortOrder: entry.sortOrder,
     title,
@@ -58,6 +61,7 @@ function kanjiCards(entries: KanjiEntry[], title: string) {
     id: buildKanjiId(entry),
     japanese: entry.japanese,
     kind: "kanji" as const,
+    phoneticHint: entry.phoneticHint || generatePronunciationHint(entry.reading),
     reading: entry.reading,
     sortOrder: entry.sortOrder,
     title,

@@ -84,6 +84,7 @@ export interface VocabularyEntry {
   english: string;
   example: string;
   japanese: string;
+  phoneticHint?: string;
   romaji: string;
   sortOrder: number;
 }
@@ -99,6 +100,7 @@ export interface KanjiEntry {
   example: string;
   japanese: string;
   meaning: string;
+  phoneticHint?: string;
   reading: string;
   sortOrder: number;
 }
