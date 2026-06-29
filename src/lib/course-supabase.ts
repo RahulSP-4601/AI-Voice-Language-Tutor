@@ -198,10 +198,12 @@ function buildKanjiGroups(groupRows: Row[], entryRows: Row[]) {
       .filter((entry) => text(entry.group_id) === text(row.id))
       .sort(byOrder)
       .map((entry) => ({
+        id: text(entry.id),
         example: text(entry.example),
         japanese: text(entry.japanese),
         meaning: text(entry.meaning),
         reading: text(entry.reading),
+        sortOrder: Number(entry.sort_order ?? 0),
       })),
     id: text(row.id),
     title: text(row.title),
@@ -214,10 +216,12 @@ function buildVocabularyCategories(categoryRows: Row[], entryRows: Row[]) {
       .filter((entry) => text(entry.category_id) === text(row.id))
       .sort(byOrder)
       .map((entry) => ({
+        id: text(entry.id),
         english: text(entry.english),
         example: text(entry.example),
         japanese: text(entry.japanese),
         romaji: text(entry.romaji),
+        sortOrder: Number(entry.sort_order ?? 0),
       })),
     id: text(row.id),
     title: text(row.title),

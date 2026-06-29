@@ -4,11 +4,13 @@ type KanjiRow = [string, string, string, string];
 
 function group(id: string, title: string, entries: KanjiRow[]): KanjiGroup {
   return {
-    entries: entries.map(([japanese, reading, meaning, example]) => ({
+    entries: entries.map(([japanese, reading, meaning, example], index) => ({
       example,
+      id: `${id}-${index + 1}`,
       japanese,
       meaning,
       reading,
+      sortOrder: index + 1,
     })),
     id,
     title,

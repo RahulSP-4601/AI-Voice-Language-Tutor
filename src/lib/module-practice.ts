@@ -16,6 +16,7 @@ export type PracticeCard = {
   japanese: string;
   kind: PracticeKind;
   reading: string;
+  sortOrder: number;
   title: string;
 };
 
@@ -45,6 +46,7 @@ function wordCards(entries: VocabularyEntry[], title: string) {
     japanese: entry.japanese,
     kind: "word" as const,
     reading: entry.romaji,
+    sortOrder: entry.sortOrder,
     title,
   }));
 }
@@ -57,6 +59,7 @@ function kanjiCards(entries: KanjiEntry[], title: string) {
     japanese: entry.japanese,
     kind: "kanji" as const,
     reading: entry.reading,
+    sortOrder: entry.sortOrder,
     title,
   }));
 }
@@ -104,14 +107,18 @@ function dedupeCards(cards: PracticeCard[]) {
 }
 
 function allWordCards(resources: LanguageCourseResources) {
-  return resources.vocabularyCategories.flatMap((category) =>
-    wordCards(category.entries, category.title),
-  );
+  return resources.vocabularyCategories
+    .flatMap((category) => wordCards(category.entries, category.title))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
-function allKanjiCards(resources: LanguageCourseResources) {
-  return resources.kanjiGroups.flatMap((group) =>
-    kanjiCards(group.entries, group.title),
+function rangeCards(cards: PracticeCard[], ranges?: Array<{ end: number; start: number }>) {
+  if (!ranges?.length) {
+    return [];
+  }
+
+  return cards.filter((card) =>
+    ranges.some((range) => card.sortOrder >= range.start && card.sortOrder <= range.end),
   );
 }
 
@@ -168,6 +175,11 @@ function moduleWordCandidates(
   resources: LanguageCourseResources,
   module: CourseModule,
 ) {
+  const ranged = dedupeCards(
+    rangeCards(allWordCards(resources), module.resourceLinks?.vocabularyRanges),
+  );
+  if (ranged.length) return ranged;
+
   const linked = dedupeCards(linkedWordCards(resources, module));
   if (linked.length) return linked;
 
@@ -182,10 +194,7 @@ function moduleKanjiCandidates(
 ) {
   const linked = dedupeCards(linkedKanjiCards(resources, module));
   if (linked.length) return linked;
-
-  const all = allKanjiCards(resources);
-  const focused = targetedCards(all, moduleSignals(module));
-  return focused.length ? focused : pickFallbackWindow(all, module.id, 8);
+  return [];
 }
 
 function orderedModules(course: LanguageCourseDefinition) {

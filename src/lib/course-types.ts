@@ -80,10 +80,12 @@ export interface ModuleReward {
 }
 
 export interface VocabularyEntry {
+  id: string;
   english: string;
   example: string;
   japanese: string;
   romaji: string;
+  sortOrder: number;
 }
 
 export interface VocabularyCategory {
@@ -93,10 +95,12 @@ export interface VocabularyCategory {
 }
 
 export interface KanjiEntry {
+  id: string;
   example: string;
   japanese: string;
   meaning: string;
   reading: string;
+  sortOrder: number;
 }
 
 export interface KanjiGroup {
@@ -128,6 +132,7 @@ export interface ResourceLinkSet {
   examSectionIds?: string[];
   kanjiGroupIds?: string[];
   vocabularyCategoryIds?: string[];
+  vocabularyRanges?: Array<{ start: number; end: number }>;
 }
 
 export interface LanguageCourseResources {

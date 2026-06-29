@@ -283,13 +283,15 @@ export function CourseStudyBank(props: {
         slug={props.slug}
         title="Words To Say"
       />
-      <PracticeCarousel
-        items={props.practiceDeck.kanji}
-        onSave={props.onPracticeItemChange}
-        progress={props.practiceItems}
-        slug={props.slug}
-        title="Kanji To Notice"
-      />
+      {props.practiceDeck.kanji.length > 0 ? (
+        <PracticeCarousel
+          items={props.practiceDeck.kanji}
+          onSave={props.onPracticeItemChange}
+          progress={props.practiceItems}
+          slug={props.slug}
+          title="Kanji To Notice"
+        />
+      ) : null}
     </section>
   );
 }

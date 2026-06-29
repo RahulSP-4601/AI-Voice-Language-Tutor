@@ -32,15 +32,21 @@ function getDefaultSelection(course: LanguageCourseDefinition) {
   return { levelId: firstLevel.id, moduleId: firstModule.id };
 }
 
+function hasCourseShape(course: LanguageCourseDefinition) {
+  return course.framework.levels.length > 0 && course.framework.levels.some(
+    (level) => level.modules.length > 0,
+  );
+}
+
 export function CourseWorkspace(props: { activeSlug: CourseSlug }) {
   const data = useActiveCourse(props.activeSlug);
 
   if (data.ready === "missing") {
     return (
       <div className="rounded-[1.9rem] border border-amber-300/20 bg-amber-300/[0.06] px-6 py-5 text-sm leading-7 text-amber-50">
-        Japanese course data is not available from Supabase yet. Paste
-        [japanese-n5-curriculum.sql] into Supabase SQL Editor, then refresh this
-        page.
+        Japanese N5 is not fully loaded from Supabase yet. Run the N5 import
+        flow again so the 8 lesson modules and the 770-word practice bank are
+        both present, then refresh this page.
       </div>
     );
   }
@@ -83,6 +89,10 @@ function useActiveCourse(slug: CourseSlug) {
   }
 
   if (course === null) {
+    return { ready: "missing" } as const;
+  }
+
+  if (!hasCourseShape(course)) {
     return { ready: "missing" } as const;
   }
 

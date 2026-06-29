@@ -8,11 +8,13 @@ function category(
   entries: VocabRow[],
 ): VocabularyCategory {
   return {
-    entries: entries.map(([japanese, romaji, english, example]) => ({
+    entries: entries.map(([japanese, romaji, english, example], index) => ({
       english,
       example,
+      id: `${id}-${index + 1}`,
       japanese,
       romaji,
+      sortOrder: index + 1,
     })),
     id,
     title,
