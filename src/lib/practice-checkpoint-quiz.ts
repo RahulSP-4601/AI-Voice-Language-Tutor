@@ -18,7 +18,7 @@ export type PracticeQuizCheckpoint = {
 
 const CHECKPOINT_SIZE = 10;
 export const CHECKPOINT_QUESTION_COUNT = 5;
-export const CHECKPOINT_PASS_SCORE = 4;
+export const CHECKPOINT_PASS_SCORE = 5;
 
 function chunkItems(items: PracticeCard[], chunkIndex: number) {
   const start = chunkIndex * CHECKPOINT_SIZE;
@@ -37,53 +37,17 @@ function rotate<T>(items: T[], start: number, count: number) {
   return Array.from({ length: count }, (_, index) => items[(start + index) % items.length]);
 }
 
-function buildMeaningQuestion(items: PracticeCard[]) {
-  const promptItem = items[0];
-  const options = rotate(items, 0, 4).map((item) => item.english);
+function buildMeaningQuestion(
+  items: PracticeCard[],
+  promptIndex: number,
+  optionStart: number,
+) {
+  const promptItem = items[promptIndex];
+  const options = rotate(items, optionStart, 4).map((item) => item.english);
   return {
     answer: promptItem.english,
     options,
     prompt: `What does ${promptItem.japanese} mean?`,
-  } satisfies PracticeQuizQuestion;
-}
-
-function buildReadingQuestion(items: PracticeCard[]) {
-  const promptItem = items[Math.min(3, items.length - 1)];
-  const options = rotate(items, 2, 4).map((item) => item.reading);
-  return {
-    answer: promptItem.reading,
-    options,
-    prompt: `Which reading matches ${promptItem.japanese}?`,
-  } satisfies PracticeQuizQuestion;
-}
-
-function buildJapaneseQuestion(items: PracticeCard[]) {
-  const promptItem = items[Math.min(6, items.length - 1)];
-  const options = rotate(items, 4, 4).map((item) => item.japanese);
-  return {
-    answer: promptItem.japanese,
-    options,
-    prompt: `Which word means “${promptItem.english}”?`,
-  } satisfies PracticeQuizQuestion;
-}
-
-function buildEnglishFromReadingQuestion(items: PracticeCard[]) {
-  const promptItem = items[Math.min(8, items.length - 1)];
-  const options = rotate(items, 1, 4).map((item) => item.english);
-  return {
-    answer: promptItem.english,
-    options,
-    prompt: `What does ${promptItem.reading} mean?`,
-  } satisfies PracticeQuizQuestion;
-}
-
-function buildReadingFromEnglishQuestion(items: PracticeCard[]) {
-  const promptItem = items[Math.min(9, items.length - 1)];
-  const options = rotate(items, 5, 4).map((item) => item.reading);
-  return {
-    answer: promptItem.reading,
-    options,
-    prompt: `Which reading matches “${promptItem.english}”?`,
   } satisfies PracticeQuizQuestion;
 }
 
@@ -111,11 +75,11 @@ export function getPendingCheckpointQuiz(
       id,
       passScore: CHECKPOINT_PASS_SCORE,
       questions: [
-        buildMeaningQuestion(chunk),
-        buildReadingQuestion(chunk),
-        buildJapaneseQuestion(chunk),
-        buildEnglishFromReadingQuestion(chunk),
-        buildReadingFromEnglishQuestion(chunk),
+        buildMeaningQuestion(chunk, 0, 0),
+        buildMeaningQuestion(chunk, 2, 1),
+        buildMeaningQuestion(chunk, 4, 2),
+        buildMeaningQuestion(chunk, 6, 3),
+        buildMeaningQuestion(chunk, 8, 4),
       ],
       title: `Checkpoint ${chunkIndex + 1}`,
     } satisfies PracticeQuizCheckpoint;

@@ -146,7 +146,7 @@ function buildCheckpointProgress(score: number) {
     accuracyScore: Math.round((score / CHECKPOINT_QUESTION_COUNT) * 100),
     coachingFeedback: passed
       ? "Nice checkpoint. You can unlock the next set now."
-      : "Close. Review the last group once, then retry this checkpoint.",
+      : "You need all 5 correct before the next group unlocks.",
     done: passed,
     fluencyScore: Math.round((score / CHECKPOINT_QUESTION_COUNT) * 100),
     lastScore: Math.round((score / CHECKPOINT_QUESTION_COUNT) * 100),

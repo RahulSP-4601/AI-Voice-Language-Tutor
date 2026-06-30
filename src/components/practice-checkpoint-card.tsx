@@ -25,6 +25,13 @@ function getOptionClass(option: string, selected?: AnswerState) {
   return "border-white/10 bg-white/[0.03] text-stone-500";
 }
 
+function buildAnswerState(answer: string, value: string) {
+  return {
+    correct: value === answer,
+    value,
+  } satisfies AnswerState;
+}
+
 function QuestionBlock(props: {
   index: number;
   onPick: (value: string) => void;
@@ -43,7 +50,7 @@ function QuestionBlock(props: {
             key={option}
             type="button"
             onClick={() => props.onPick(option)}
-            disabled={Boolean(props.selected)}
+            disabled={props.selected?.correct}
             className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${getOptionClass(option, props.selected)}`}
           >
             {option}
@@ -58,7 +65,7 @@ function QuestionBlock(props: {
         >
           {props.selected.correct
             ? "Correct answer."
-            : `Wrong answer. Correct answer: ${props.question.answer}`}
+            : "Wrong answer. Try again."}
         </p>
       ) : null}
     </div>
@@ -75,13 +82,18 @@ function CheckpointHeader(props: { checkpoint: PracticeQuizCheckpoint }) {
         Quick test after {props.checkpoint.chunkEnd} words
       </h3>
       <p className="mt-3 text-sm leading-7 text-stone-200">
-        Answer these {CHECKPOINT_QUESTION_COUNT} MCQs. Get at least {props.checkpoint.passScore} right to unlock the next group.
+        Answer these {CHECKPOINT_QUESTION_COUNT} MCQs. All {props.checkpoint.passScore} must be right to unlock the next group.
       </p>
     </div>
   );
 }
 
-function SubmitButton(props: { disabled: boolean; onClick: () => void }) {
+function ActionButton(props: {
+  disabled?: boolean;
+  onClick: () => void;
+  tone: "primary" | "secondary";
+  label: string;
+}) {
   return (
     <button
       type="button"
@@ -90,11 +102,51 @@ function SubmitButton(props: { disabled: boolean; onClick: () => void }) {
       className={`rounded-full border px-5 py-3 text-sm font-medium transition ${
         props.disabled
           ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-stone-400"
-          : "border-emerald-300/25 bg-emerald-400/18 text-emerald-100 hover:bg-emerald-400/24"
+          : props.tone === "primary"
+            ? "border-emerald-300/25 bg-emerald-400/18 text-emerald-100 hover:bg-emerald-400/24"
+            : "border-white/10 bg-white/[0.03] text-stone-200 hover:bg-white/[0.06]"
       }`}
     >
-      Submit checkpoint
+      {props.label}
     </button>
+  );
+}
+
+function CheckpointActions(props: {
+  allCorrect: boolean;
+  onReset: () => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-3">
+      <ActionButton label="Retake quiz" onClick={props.onReset} tone="secondary" />
+      <ActionButton
+        disabled={!props.allCorrect}
+        label="Unlock next group"
+        onClick={props.onSubmit}
+        tone="primary"
+      />
+    </div>
+  );
+}
+
+function QuizQuestionList(props: {
+  answers: Array<AnswerState | undefined>;
+  checkpoint: PracticeQuizCheckpoint;
+  onPick: (index: number, value: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {props.checkpoint.questions.map((question, index) => (
+        <QuestionBlock
+          key={question.prompt}
+          index={index}
+          onPick={(value) => props.onPick(index, value)}
+          question={question}
+          selected={props.answers[index]}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -109,14 +161,15 @@ export function PracticeCheckpointCard(props: {
   function updateAnswer(index: number, value: string) {
     setAnswers((current) =>
       current.map((item, itemIndex) =>
-        itemIndex === index && !item
-          ? {
-              correct: value === props.checkpoint.questions[index]?.answer,
-              value,
-            }
+        itemIndex === index
+          ? buildAnswerState(props.checkpoint.questions[index]?.answer ?? "", value)
           : item,
       ),
     );
+  }
+
+  function resetQuiz() {
+    setAnswers(props.checkpoint.questions.map(() => undefined));
   }
 
   function submitQuiz() {
@@ -124,23 +177,21 @@ export function PracticeCheckpointCard(props: {
     props.onSubmit(correct);
   }
 
-  const answeredAll = answers.every((item) => Boolean(item));
+  const allCorrect = answers.every((item) => item?.correct);
 
   return (
     <div className="space-y-4 rounded-[1.6rem] border border-emerald-400/12 bg-[linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.03))] p-6">
       <CheckpointHeader checkpoint={props.checkpoint} />
-      <div className="space-y-3">
-        {props.checkpoint.questions.map((question, index) => (
-          <QuestionBlock
-            key={question.prompt}
-            index={index}
-            onPick={(value) => updateAnswer(index, value)}
-            question={question}
-            selected={answers[index]}
-          />
-        ))}
-      </div>
-      <SubmitButton disabled={!answeredAll} onClick={submitQuiz} />
+      <QuizQuestionList
+        answers={answers}
+        checkpoint={props.checkpoint}
+        onPick={updateAnswer}
+      />
+      <CheckpointActions
+        allCorrect={allCorrect}
+        onReset={resetQuiz}
+        onSubmit={submitQuiz}
+      />
     </div>
   );
 }
