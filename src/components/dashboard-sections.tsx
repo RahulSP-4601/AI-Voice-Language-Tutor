@@ -147,7 +147,6 @@ export function CourseComingSoonPanel(props: {
 
   return (
     <section className="space-y-8">
-      <DashboardCourseTabs activeSlug={props.slug} />
       <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6">
         <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
           Coming soon
