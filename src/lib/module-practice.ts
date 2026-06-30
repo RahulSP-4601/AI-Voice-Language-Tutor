@@ -205,6 +205,14 @@ function moduleKanjiCandidates(
   return [];
 }
 
+function hasExplicitPracticeResources(module: CourseModule) {
+  return Boolean(
+    module.resourceLinks?.vocabularyRanges?.length ||
+      module.resourceLinks?.vocabularyCategoryIds?.length ||
+      module.resourceLinks?.kanjiGroupIds?.length,
+  );
+}
+
 function orderedModules(course: LanguageCourseDefinition) {
   return course.framework.levels.flatMap((level) => level.modules);
 }
@@ -238,17 +246,18 @@ export function buildCoursePracticeMap(
 
   return Object.fromEntries(
     orderedModules(course).map((module) => {
-      const words = takeUnseen(
-        moduleWordCandidates(resources, module),
-        seenWordIds,
-      );
-      const kanji = takeUnseen(
-        moduleKanjiCandidates(resources, module),
-        seenKanjiIds,
-      );
-      remember(words, seenWordIds);
-      remember(kanji, seenKanjiIds);
-      return [module.id, buildDeck(words, kanji)];
+      const words = moduleWordCandidates(resources, module);
+      const kanji = moduleKanjiCandidates(resources, module);
+
+      if (hasExplicitPracticeResources(module)) {
+        return [module.id, buildDeck(words, kanji)];
+      }
+
+      const unseenWords = takeUnseen(words, seenWordIds);
+      const unseenKanji = takeUnseen(kanji, seenKanjiIds);
+      remember(unseenWords, seenWordIds);
+      remember(unseenKanji, seenKanjiIds);
+      return [module.id, buildDeck(unseenWords, unseenKanji)];
     }),
   );
 }
