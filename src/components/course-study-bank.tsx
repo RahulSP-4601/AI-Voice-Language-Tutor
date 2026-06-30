@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PracticeCheckpointCard } from "@/components/practice-checkpoint-card";
 import { PracticeCarouselCard } from "@/components/practice-carousel-card";
 import { useAudioRecorder } from "@/components/use-audio-recorder";
 import { usePracticeEvaluation } from "@/components/use-practice-evaluation";
@@ -15,6 +16,11 @@ import {
   type ModulePracticeDeck,
   type PracticeCard,
 } from "@/lib/module-practice";
+import {
+  CHECKPOINT_PASS_SCORE,
+  CHECKPOINT_QUESTION_COUNT,
+  getPendingCheckpointQuiz,
+} from "@/lib/practice-checkpoint-quiz";
 import { playTutorAudioSequence } from "@/lib/tutor-audio";
 
 function SectionShell(props: { children: React.ReactNode; title: string }) {
@@ -134,6 +140,47 @@ function markDone(current?: StoredPracticeItemProgress) {
   } satisfies StoredPracticeItemProgress;
 }
 
+function buildCheckpointProgress(score: number) {
+  const passed = score >= CHECKPOINT_PASS_SCORE;
+  return {
+    accuracyScore: Math.round((score / CHECKPOINT_QUESTION_COUNT) * 100),
+    coachingFeedback: passed
+      ? "Nice checkpoint. You can unlock the next set now."
+      : "Close. Review the last group once, then retry this checkpoint.",
+    done: passed,
+    fluencyScore: Math.round((score / CHECKPOINT_QUESTION_COUNT) * 100),
+    lastScore: Math.round((score / CHECKPOINT_QUESTION_COUNT) * 100),
+    lastTranscript: "",
+    practicedAt: new Date().toISOString(),
+    pronunciationScore: Math.round((score / CHECKPOINT_QUESTION_COUNT) * 100),
+  } satisfies StoredPracticeItemProgress;
+}
+
+function CheckpointSection(props: {
+  checkpoint: NonNullable<ReturnType<typeof getPendingCheckpointQuiz>>;
+  onSave: (itemId: string, value: StoredPracticeItemProgress) => void;
+  title: string;
+}) {
+  return (
+    <SectionShell title={props.title}>
+      <PracticeCheckpointCard
+        checkpoint={props.checkpoint}
+        onSubmit={(score) =>
+          props.onSave(props.checkpoint.id, buildCheckpointProgress(score))
+        }
+      />
+    </SectionShell>
+  );
+}
+
+function EmptySection(props: { title: string }) {
+  return (
+    <SectionShell title={props.title}>
+      <EmptyState message="No linked practice cards are ready for this module yet." />
+    </SectionShell>
+  );
+}
+
 function buildCarouselState(input: {
   items: PracticeCard[];
   progress: Record<string, StoredPracticeItemProgress>;
@@ -212,6 +259,7 @@ function PracticeCarousel(props: {
   slug: CourseSlug;
   title: string;
 }) {
+  const checkpoint = getPendingCheckpointQuiz(props.items, props.progress);
   const { selected, selectedIndex, setSelectedId } = usePracticeSelection(
     props.items,
     props.progress,
@@ -220,12 +268,12 @@ function PracticeCarousel(props: {
   const evaluation = usePracticeEvaluation();
   const [recordingItemId, setRecordingItemId] = useState("");
 
+  if (checkpoint) {
+    return <CheckpointSection checkpoint={checkpoint} onSave={props.onSave} title={props.title} />;
+  }
+
   if (!selected) {
-    return (
-      <SectionShell title={props.title}>
-        <EmptyState message="No linked practice cards are ready for this module yet." />
-      </SectionShell>
-    );
+    return <EmptySection title={props.title} />;
   }
 
   return (

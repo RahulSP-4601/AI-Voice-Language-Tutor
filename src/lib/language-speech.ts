@@ -57,6 +57,14 @@ const SUPPORT: Record<CourseSlug, SpeechSupport> = {
 };
 
 const JAPANESE_SOUND_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/ah/g, "a"],
+  [/eh/g, "e"],
+  [/ih/g, "i"],
+  [/oh/g, "o"],
+  [/uh/g, "u"],
+  [/aa/g, "a"],
+  [/ii/g, "i"],
+  [/uu/g, "u"],
   [/eetchi/g, "iti"],
   [/eechi/g, "iti"],
   [/echee/g, "iti"],
@@ -77,6 +85,9 @@ const JAPANESE_SOUND_REPLACEMENTS: Array<[RegExp, string]> = [
   [/tsoo/g, "tu"],
   [/tsu/g, "tu"],
   [/dzu/g, "zu"],
+  [/sh/g, "s"],
+  [/j/g, "z"],
+  [/l/g, "r"],
 ];
 
 export function getSpeechSupport(slug: CourseSlug) {
@@ -101,14 +112,15 @@ export function buildSpeechScoreBand(
   confidence: number,
 ) {
   const similarity = getBestSpeechSimilarity(slug, transcript, candidates);
-  const blended = similarity * 0.9 + Math.max(confidence, 0.35) * 0.1;
+  const floor = slug === "japanese" ? 0.45 : 0.35;
+  const blended = similarity * 0.92 + Math.max(confidence, floor) * 0.08;
 
-  if (blended >= 0.96) return createSpeechScoreBand(98, 97, 93, true, true, blended);
-  if (blended >= 0.9) return createSpeechScoreBand(94, 92, 88, true, true, blended);
-  if (blended >= 0.82) return createSpeechScoreBand(87, 85, 80, true, true, blended);
-  if (blended >= 0.74) return createSpeechScoreBand(79, 77, 74, true, true, blended);
-  if (blended >= 0.64) return createSpeechScoreBand(69, 67, 63, false, false, blended);
-  if (blended >= 0.52) return createSpeechScoreBand(58, 56, 52, false, false, blended);
+  if (blended >= 0.94) return createSpeechScoreBand(98, 97, 93, true, true, blended);
+  if (blended >= 0.87) return createSpeechScoreBand(94, 92, 88, true, true, blended);
+  if (blended >= 0.78) return createSpeechScoreBand(87, 85, 80, true, true, blended);
+  if (blended >= 0.7) return createSpeechScoreBand(79, 77, 74, true, true, blended);
+  if (blended >= 0.6) return createSpeechScoreBand(69, 67, 63, false, false, blended);
+  if (blended >= 0.48) return createSpeechScoreBand(58, 56, 52, false, false, blended);
   return createSpeechScoreBand(0, 0, 0, false, false, blended);
 }
 
