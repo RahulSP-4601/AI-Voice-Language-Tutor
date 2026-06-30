@@ -3,6 +3,7 @@
 import { type RefObject, useEffect, useRef, useState } from "react";
 import { type CourseSlug } from "@/lib/course-definitions";
 import { playCourseSpeech, speechSynthesisSupported } from "@/lib/browser-speech";
+import { playTutorAudioSequence } from "@/lib/tutor-audio";
 
 type RecognitionShape = {
   abort: () => void;
@@ -96,15 +97,21 @@ function useRecognitionLifecycle(input: {
 }
 
 function createPhrasePlayer(slug: CourseSlug) {
-  return (phrase: string, fallbackPhrase?: string) => {
-    if (!speechSynthesisSupported()) {
-      return;
-    }
-
-    playCourseSpeech({
-      fallbackText: fallbackPhrase,
-      primaryText: phrase,
-      slug,
+  return async (phrase: string, fallbackPhrase?: string) => {
+    await playTutorAudioSequence([
+      {
+        fallbackText: fallbackPhrase,
+        slug,
+        text: phrase,
+      },
+    ]).catch(() => {
+      if (speechSynthesisSupported()) {
+        playCourseSpeech({
+          fallbackText: fallbackPhrase,
+          primaryText: phrase,
+          slug,
+        });
+      }
     });
   };
 }

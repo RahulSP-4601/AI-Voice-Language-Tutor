@@ -112,7 +112,7 @@ function PracticeCard(props: {
         {props.lesson.replyPrompt}
       </p>
       <div className="mt-5 flex flex-wrap gap-3">
-        <LessonActionButton label="Play tutor line" onClick={props.onPlay} />
+        <LessonActionButton label="How does it sound?" onClick={props.onPlay} />
         <LessonActionButton
           label={getRecordLabel(props.isEvaluating, props.isRecording)}
           muted={props.isEvaluating || props.moduleState === "not_started"}
@@ -446,7 +446,7 @@ function LessonRunnerActions(props: {
         <LessonActionButton label="Start lesson" onClick={props.onStart} />
       ) : null}
       <LessonActionButton label="Next step" onClick={props.onAdvance} />
-      <LessonActionButton label="Play tutor line" muted onClick={props.onPlay} />
+      <LessonActionButton label="How does it sound?" muted onClick={props.onPlay} />
       {props.supported ? (
         <LessonActionButton
           label={

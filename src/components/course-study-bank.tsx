@@ -15,7 +15,7 @@ import {
   type ModulePracticeDeck,
   type PracticeCard,
 } from "@/lib/module-practice";
-import { playCourseSpeech } from "@/lib/browser-speech";
+import { playTutorAudioSequence } from "@/lib/tutor-audio";
 
 function SectionShell(props: { children: React.ReactNode; title: string }) {
   return (
@@ -57,12 +57,17 @@ function isPassScore(score?: number | null) {
 }
 
 function speakPrompt(item: PracticeCard, slug: CourseSlug) {
-  playCourseSpeech({
-    fallbackText: item.reading,
-    primaryText: item.japanese,
-    secondaryText: `In English, this means ${item.english}.`,
-    slug,
-  });
+  void playTutorAudioSequence([
+    {
+      fallbackText: item.reading,
+      slug,
+      text: item.japanese,
+    },
+    {
+      slug: "english",
+      text: `In English, this means ${item.english}.`,
+    },
+  ]);
 }
 
 function firstPendingItemId(

@@ -143,7 +143,7 @@ function TranscriptPanel(props: {
         value={
           props.error ||
           props.progress?.coachingFeedback ||
-          "Play the tutor line, record yourself, and aim for a clean exact match."
+          "Hear how it sounds, record yourself, and aim for a clean exact match."
         }
       />
     </div>
@@ -165,7 +165,7 @@ function PracticeActions(props: {
   return (
     <div className="mt-5 flex flex-wrap gap-3">
       <ActionButton
-        label="Play tutor line"
+        label="How does it sound?"
         onClick={props.onPlay}
       />
       <ActionButton
