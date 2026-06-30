@@ -46,6 +46,7 @@ function IntroBadge(props: { label: string }) {
 }
 
 export function CourseLayout(props: {
+  activeLevel: CourseLevel;
   activeLevelCompletedCount: number;
   activeLevelId: string;
   activeModule: CourseModule;
@@ -65,9 +66,10 @@ export function CourseLayout(props: {
   return (
     <section className="grid gap-6 lg:grid-cols-[0.3fr_0.7fr]">
       <CourseSidebar
-        course={props.course}
-        activeLevelId={props.activeLevelId}
         activeModuleId={props.activeModuleId}
+        courseName={props.course.name}
+        frameworkName={props.course.framework.name}
+        level={props.activeLevel}
         progressMap={props.progressMap}
         onSelectModule={props.onSelectModule}
       />
@@ -79,7 +81,11 @@ export function CourseLayout(props: {
 function CourseLayoutMain(
   props: Omit<
     Parameters<typeof CourseLayout>[0],
-    "activeLevelId" | "activeModuleId" | "onSelectModule" | "progressMap"
+    | "activeLevel"
+    | "activeLevelId"
+    | "activeModuleId"
+    | "onSelectModule"
+    | "progressMap"
   >,
 ) {
   return (

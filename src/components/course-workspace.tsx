@@ -12,6 +12,7 @@ import {
   type CourseModule,
   type CourseSlug,
 } from "@/lib/course-definitions";
+import { findLevelByRouteParam } from "@/lib/course-routing";
 import {
   buildModulePracticeCards,
   type ModulePracticeDeck,
@@ -32,21 +33,59 @@ function getDefaultSelection(course: LanguageCourseDefinition) {
   return { levelId: firstLevel.id, moduleId: firstModule.id };
 }
 
+function getPreferredSelection(
+  course: LanguageCourseDefinition,
+  preferredLevel?: string,
+) {
+  if (!preferredLevel) {
+    return getDefaultSelection(course);
+  }
+
+  const level = findLevelByRouteParam(course.framework.levels, preferredLevel);
+  if (!level || level.modules.length === 0) {
+    return null;
+  }
+
+  return { levelId: level.id, moduleId: level.modules[0].id };
+}
+
 function hasCourseShape(course: LanguageCourseDefinition) {
   return course.framework.levels.length > 0 && course.framework.levels.some(
     (level) => level.modules.length > 0,
   );
 }
 
-export function CourseWorkspace(props: { activeSlug: CourseSlug }) {
-  const data = useActiveCourse(props.activeSlug);
+function getResolvedCourseSetup(
+  course: LanguageCourseDefinition | null,
+  preferredLevel: string | undefined,
+  progress: NonNullable<ReturnType<typeof useCourseProgress>["progress"]> | null,
+) {
+  if (!course || !hasCourseShape(course)) {
+    return null;
+  }
+
+  if (!progress) {
+    return { course, progress: null, selection: null };
+  }
+
+  return {
+    course,
+    progress,
+    selection: getPreferredSelection(course, preferredLevel),
+  };
+}
+
+export function CourseWorkspace(props: {
+  activeSlug: CourseSlug;
+  preferredLevel?: string;
+}) {
+  const data = useActiveCourse(props.activeSlug, props.preferredLevel);
 
   if (data.ready === "missing") {
     return (
       <div className="rounded-[1.9rem] border border-amber-300/20 bg-amber-300/[0.06] px-6 py-5 text-sm leading-7 text-amber-50">
-        Japanese N5 is not fully loaded from Supabase yet. Run the N5 import
-        flow again so the 8 lesson modules and the 770-word practice bank are
-        both present, then refresh this page.
+        This course level is not available yet. Refresh after the latest course
+        import, or choose a different level from the difficulty screen.
       </div>
     );
   }
@@ -62,7 +101,7 @@ export function CourseWorkspace(props: { activeSlug: CourseSlug }) {
   return <CourseLayout {...data} slug={props.activeSlug} />;
 }
 
-function useActiveCourse(slug: CourseSlug) {
+function useActiveCourse(slug: CourseSlug, preferredLevel?: string) {
   const courseState = useCourseDefinition(slug);
   const course = courseState.course;
   const [selection, setSelection] = useState<CourseSelection | null>(null);
@@ -88,22 +127,23 @@ function useActiveCourse(slug: CourseSlug) {
     return { ready: false } as const;
   }
 
-  if (course === null) {
+  const setup = getResolvedCourseSetup(course, preferredLevel, progress);
+  if (!setup) {
     return { ready: "missing" } as const;
   }
 
-  if (!hasCourseShape(course)) {
-    return { ready: "missing" } as const;
-  }
-
-  if (!progress) {
+  if (!setup.progress) {
     return { ready: false } as const;
   }
 
-  const activeSelection = selection ?? getDefaultSelection(course);
+  if (!setup.selection) {
+    return { ready: "missing" } as const;
+  }
+
+  const activeSelection = selection ?? setup.selection;
   return buildCourseWorkspaceState({
-    course,
-    progress,
+    course: setup.course,
+    progress: setup.progress,
     ready,
     selection: activeSelection,
     setProgress,
@@ -136,6 +176,7 @@ function buildCourseWorkspaceState(input: {
   const progressSummary = buildProgressSummary(input.progress, activeLevel);
 
   return {
+    activeLevel,
     activeLevelCompletedCount: progressSummary.activeLevelCompletedCount,
     activeLevelId: activeLevel.id,
     activeModule,

@@ -4,7 +4,6 @@ import {
   type CompletionState,
   type CourseLevel,
   type CourseModule,
-  type LanguageCourseDefinition,
 } from "@/lib/course-definitions";
 
 function SidebarModule(props: {
@@ -39,13 +38,11 @@ function SidebarModule(props: {
 }
 
 function LevelSection(props: {
-  activeLevelId: string;
   activeModuleId: string;
   level: CourseLevel;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
   progressMap: Record<string, CompletionState>;
 }) {
-  const isActiveLevel = props.level.id === props.activeLevelId;
   const completedCount = props.level.modules.filter(
     (module) => props.progressMap[module.id] === "completed",
   ).length;
@@ -54,7 +51,6 @@ function LevelSection(props: {
     <section className="rounded-[1.45rem] border border-white/8 bg-black/20 p-4">
       <LevelHeader
         completedCount={completedCount}
-        isActiveLevel={isActiveLevel}
         level={props.level}
       />
       <p className="mt-3 text-sm leading-6 text-stone-400">
@@ -62,7 +58,6 @@ function LevelSection(props: {
       </p>
       <LevelContent
         activeModuleId={props.activeModuleId}
-        isActiveLevel={isActiveLevel}
         level={props.level}
         onSelectModule={props.onSelectModule}
         progressMap={props.progressMap}
@@ -73,7 +68,6 @@ function LevelSection(props: {
 
 function LevelHeader(props: {
   completedCount: number;
-  isActiveLevel: boolean;
   level: CourseLevel;
 }) {
   return (
@@ -87,11 +81,7 @@ function LevelHeader(props: {
         </p>
       </div>
       <span
-        className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.2em] ${
-          props.isActiveLevel
-            ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
-            : "border-white/10 bg-white/[0.04] text-stone-400"
-        }`}
+        className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-amber-100"
       >
         {props.completedCount}/{props.level.modules.length}
       </span>
@@ -101,19 +91,10 @@ function LevelHeader(props: {
 
 function LevelContent(props: {
   activeModuleId: string;
-  isActiveLevel: boolean;
   level: CourseLevel;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
   progressMap: Record<string, CompletionState>;
 }) {
-  if (!props.isActiveLevel) {
-    return (
-      <div className="mt-4 rounded-[1.1rem] border border-white/8 bg-white/[0.03] px-4 py-3 text-xs uppercase tracking-[0.18em] text-stone-500">
-        Open this level when you are ready to continue.
-      </div>
-    );
-  }
-
   return (
     <div className="mt-4 space-y-2">
       {props.level.modules.map((module) => (
@@ -130,31 +111,28 @@ function LevelContent(props: {
 }
 
 export function CourseSidebar(props: {
-  activeLevelId: string;
   activeModuleId: string;
-  course: LanguageCourseDefinition;
+  courseName: string;
+  frameworkName: string;
+  level: CourseLevel;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
   progressMap: Record<string, CompletionState>;
 }) {
   return (
     <aside className="rounded-[1.9rem] border border-white/10 bg-white/[0.04] p-5">
       <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
-        {props.course.name}
+        {props.courseName}
       </p>
       <p className="mt-2 text-sm text-stone-400">
-        {props.course.framework.name} speaking path
+        {props.frameworkName} {props.level.officialLabel} path
       </p>
-      <div className="mt-6 space-y-4">
-        {props.course.framework.levels.map((level) => (
-          <LevelSection
-            key={level.id}
-            level={level}
-            activeLevelId={props.activeLevelId}
-            activeModuleId={props.activeModuleId}
-            onSelectModule={props.onSelectModule}
-            progressMap={props.progressMap}
-          />
-        ))}
+      <div className="mt-6">
+        <LevelSection
+          activeModuleId={props.activeModuleId}
+          level={props.level}
+          onSelectModule={props.onSelectModule}
+          progressMap={props.progressMap}
+        />
       </div>
     </aside>
   );
