@@ -34,16 +34,29 @@ async function selectRows(
   table: string,
   slug: CourseSlug,
 ) {
-  const query = client
-    .from(table)
-    .select("*")
-    .eq("language_slug", slug)
-    .order("sort_order", { ascending: true });
-  const { data, error } = await query;
-  if (error) {
-    throw error;
+  const pageSize = 1000;
+  const rows: Row[] = [];
+
+  for (let start = 0; ; start += pageSize) {
+    const end = start + pageSize - 1;
+    const { data, error } = await client
+      .from(table)
+      .select("*")
+      .eq("language_slug", slug)
+      .order("sort_order", { ascending: true })
+      .range(start, end);
+
+    if (error) {
+      throw error;
+    }
+
+    const batch = data ?? [];
+    rows.push(...batch);
+
+    if (batch.length < pageSize) {
+      return rows;
+    }
   }
-  return data ?? [];
 }
 
 async function selectLanguageRows(
