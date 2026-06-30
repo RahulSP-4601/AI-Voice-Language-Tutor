@@ -1,5 +1,4 @@
 const VOCAB_LESSON_COUNT = 8;
-const KANJI_LESSON_COUNT = 1;
 const VOCAB_SORT_OFFSET = 2000;
 
 function buildRanges(totalEntries, lessonCount) {
