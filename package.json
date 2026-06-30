@@ -12,6 +12,8 @@
     "guardian:static": "node ./scripts/guardian-static.mjs",
     "guardian:functional": "node ./scripts/guardian-functional.mjs",
     "hooks:install": "sh ./scripts/install-hooks.sh",
+    "n1:extract": "node ./scripts/extract-jlpt-n1-words.mjs",
+    "n1:import": "node ./scripts/import-jlpt-n1-words.mjs",
     "n2:extract": "node ./scripts/extract-jlpt-n2-words.mjs",
     "n2:import": "node ./scripts/import-jlpt-n2-words.mjs",
     "n2:reset": "node ./scripts/delete-jlpt-n2-course.mjs",
