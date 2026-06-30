@@ -15,7 +15,7 @@ import {
   type ModulePracticeDeck,
   type PracticeCard,
 } from "@/lib/module-practice";
-import { getSpeechSupport } from "@/lib/language-speech";
+import { playCourseSpeech } from "@/lib/browser-speech";
 
 function SectionShell(props: { children: React.ReactNode; title: string }) {
   return (
@@ -57,13 +57,12 @@ function isPassScore(score?: number | null) {
 }
 
 function speakPrompt(item: PracticeCard, slug: CourseSlug) {
-  window.speechSynthesis.cancel();
-  const japanese = new SpeechSynthesisUtterance(item.japanese);
-  japanese.lang = getSpeechSupport(slug).speechSynthesisLanguage;
-  const english = new SpeechSynthesisUtterance(`In English, this means ${item.english}.`);
-  english.lang = "en-US";
-  japanese.onend = () => window.speechSynthesis.speak(english);
-  window.speechSynthesis.speak(japanese);
+  playCourseSpeech({
+    fallbackText: item.reading,
+    primaryText: item.japanese,
+    secondaryText: `In English, this means ${item.english}.`,
+    slug,
+  });
 }
 
 function firstPendingItemId(

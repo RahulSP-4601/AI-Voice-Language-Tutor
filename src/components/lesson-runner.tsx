@@ -232,6 +232,17 @@ export function LessonRunner(props: LessonRunnerProps) {
   return <LessonRunnerBody {...props} {...runner} />;
 }
 
+function buildTutorLinePlayer(
+  lesson: CourseLesson,
+  playPhrase: (phrase: string, fallbackPhrase?: string) => void,
+) {
+  const fallbackPhrase = lesson.acceptableResponses.find(
+    (value) => value !== lesson.demoPhrase,
+  );
+
+  return () => playPhrase(lesson.demoPhrase, fallbackPhrase);
+}
+
 function useLessonRunnerState(props: LessonRunnerProps) {
   const [currentTurn, setCurrentTurn] = useState(props.currentTurn);
   const [transcript, setTranscript] = useState(props.lastTranscript);
@@ -260,6 +271,7 @@ function useLessonRunnerState(props: LessonRunnerProps) {
     setTranscript,
     slug: props.slug,
   });
+  const playTutorLine = buildTutorLinePlayer(props.lesson, playPhrase);
 
   return {
     advanceTurn: turnHandlers.advanceTurn,
@@ -269,7 +281,7 @@ function useLessonRunnerState(props: LessonRunnerProps) {
     isListening,
     isEvaluating: evaluation.isEvaluating,
     isRecording: recorder.isRecording,
-    playTutorLine: () => playPhrase(props.lesson.demoPhrase),
+    playTutorLine,
     recordAnswer: handleRecord,
     startLesson: turnHandlers.startLesson,
     startListening,

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import { type CourseSlug } from "@/lib/course-definitions";
+import { playCourseSpeech, speechSynthesisSupported } from "@/lib/browser-speech";
 
 type RecognitionShape = {
   abort: () => void;
@@ -58,29 +59,73 @@ function stopRecognition(recognition: RecognitionShape, setIsListening: (value: 
   setIsListening(false);
 }
 
-export function useLessonSpeech(
-  slug: CourseSlug,
-  onTranscript: (value: string) => void,
-) {
-  const recognitionRef = useRef<RecognitionShape | null>(null);
-  const [isListening, setIsListening] = useState(false);
-  const SpeechRecognitionCtor = getSpeechRecognitionCtor();
-  const supported = Boolean(SpeechRecognitionCtor);
+function useRecognitionLifecycle(input: {
+  onTranscript: (value: string) => void;
+  recognitionCtor: ReturnType<typeof getSpeechRecognitionCtor>;
+  recognitionRef: RefObject<RecognitionShape | null>;
+  setIsListening: (value: boolean) => void;
+  slug: CourseSlug;
+}) {
+  const {
+    onTranscript,
+    recognitionCtor,
+    recognitionRef,
+    setIsListening,
+    slug,
+  } = input;
 
   useEffect(() => {
-    if (!SpeechRecognitionCtor) {
+    if (!recognitionCtor) {
       return;
     }
 
-    const recognition = new SpeechRecognitionCtor() as RecognitionShape;
-    bindRecognition({ onTranscript, recognition, setIsListening, slug });
+    const recognition = new recognitionCtor() as RecognitionShape;
+    bindRecognition({
+      onTranscript,
+      recognition,
+      setIsListening,
+      slug,
+    });
     recognitionRef.current = recognition;
 
     return () => {
       recognition.abort();
       recognitionRef.current = null;
     };
-  }, [SpeechRecognitionCtor, onTranscript, slug]);
+  }, [onTranscript, recognitionCtor, recognitionRef, setIsListening, slug]);
+}
+
+function createPhrasePlayer(slug: CourseSlug) {
+  return (phrase: string, fallbackPhrase?: string) => {
+    if (!speechSynthesisSupported()) {
+      return;
+    }
+
+    playCourseSpeech({
+      fallbackText: fallbackPhrase,
+      primaryText: phrase,
+      slug,
+    });
+  };
+}
+
+export function useLessonSpeech(
+  slug: CourseSlug,
+  onTranscript: (value: string) => void,
+) {
+  const recognitionRef = useRef<RecognitionShape | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionCtor = getSpeechRecognitionCtor();
+  const supported = Boolean(recognitionCtor);
+  const playPhrase = createPhrasePlayer(slug);
+
+  useRecognitionLifecycle({
+    onTranscript,
+    recognitionCtor,
+    recognitionRef,
+    setIsListening,
+    slug,
+  });
 
   function startListening() {
     if (!recognitionRef.current) {
@@ -97,13 +142,6 @@ export function useLessonSpeech(
     }
 
     stopRecognition(recognitionRef.current, setIsListening);
-  }
-
-  function playPhrase(phrase: string) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(phrase);
-    utterance.lang = getSpeechLanguage(slug);
-    window.speechSynthesis.speak(utterance);
   }
 
   return { isListening, playPhrase, startListening, stopListening, supported };
