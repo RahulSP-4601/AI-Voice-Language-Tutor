@@ -120,17 +120,50 @@ function buildLanguageRow() {
   };
 }
 
-function buildLevelRow(lessonCount, importedCount, skippedCount) {
+async function fetchExistingN1KanjiGroups() {
+  const { baseUrl, headers } = buildHeaders();
+  const [groupsResponse, entriesResponse] = await Promise.all([
+    fetch(new URL("/rest/v1/curriculum_kanji_groups?select=id,title,sort_order&language_slug=eq.japanese&order=sort_order.asc", baseUrl), {
+      headers,
+    }),
+    fetch(
+      new URL(
+        "/rest/v1/curriculum_kanji_entries?select=id,group_id,japanese,reading,meaning,example,sort_order&language_slug=eq.japanese&order=sort_order.asc",
+        baseUrl,
+      ),
+      { headers },
+    ),
+  ]);
+
+  const groupsText = await groupsResponse.text();
+  const entriesText = await entriesResponse.text();
+  if (!groupsResponse.ok || !entriesResponse.ok) {
+    throw new Error(`Failed reading existing N1 kanji rows: ${groupsText || entriesText}`);
+  }
+
+  const groups = (groupsText ? JSON.parse(groupsText) : []).filter((group) => String(group.id).startsWith("n1-kanji-group-"));
+  const entries = (entriesText ? JSON.parse(entriesText) : []).filter((entry) => String(entry.group_id).startsWith("n1-kanji-group-"));
+
+  return groups.map((group) => ({
+    ...group,
+    entries: entries
+      .filter((entry) => entry.group_id === group.id)
+      .sort((a, b) => a.sort_order - b.sort_order),
+  }));
+}
+
+function buildLevelRow(vocabLessonCount, kanjiLessonCount, importedCount, kanjiCount, skippedCount) {
+  const totalLessonCount = vocabLessonCount + kanjiLessonCount;
   return {
     id: "jp-n1",
     language_slug: "japanese",
     official_label: "N1",
-    product_label: "Basic 5",
-    objective: `Complete the JLPT N1 journey by moving lesson by lesson through the ${importedCount}-word bank with listening, meaning, and speaking practice.`,
+    product_label: "JLPT Level",
+    objective: `Complete the JLPT N1 journey by finishing ${vocabLessonCount} vocabulary lessons first, then ${kanjiLessonCount} kanji lessons across ${importedCount + kanjiCount} total words.`,
     exam_title: "JLPT N1 certificate exam",
-    pass_requirement: `Finish all ${lessonCount} lessons and complete the final N1 certificate check.`,
+    pass_requirement: `Finish all ${totalLessonCount} lessons and complete the final N1 certificate check.`,
     certificate_title: "JLPT N1 completion certificate",
-    certificate_summary: `Issued after the learner completes all ${lessonCount} N1 lessons and clears the certificate checkpoint. ${skippedCount} duplicate words were skipped because they already existed in Japanese vocab.`,
+    certificate_summary: `Issued after the learner completes all ${totalLessonCount} N1 lessons and clears the certificate checkpoint. ${skippedCount} duplicate words were skipped because they already existed in Japanese vocab.`,
     sort_order: 4,
   };
 }
@@ -175,6 +208,7 @@ async function upsertRowChunks(table, rows, conflictColumn = "id") {
 async function main() {
   const payload = await readPayload();
   const existingEntries = await fetchExistingJapaneseVocab();
+  const groupedKanji = await fetchExistingN1KanjiGroups();
   const { filtered: words, skipped } = filterNewWords(payload.words, existingEntries);
 
   if (words.length === 0) {
@@ -183,7 +217,8 @@ async function main() {
 
   const categories = buildCategoryRows(words);
   const entries = buildEntryRows(words, categories);
-  const structure = buildJlptN1CourseStructure(words);
+  const structure = buildJlptN1CourseStructure(words, groupedKanji);
+  const vocabLessonCount = Math.ceil(words.length / 100);
 
   await deleteRows("curriculum_vocab_entries", "category_id", "n1-vocabulary");
   await deleteRows("curriculum_vocab_categories", "id", "n1-vocabulary");
@@ -192,7 +227,10 @@ async function main() {
   await deleteRows("curriculum_modules", "id", "jp-n1-roadmap");
 
   await upsertRows("curriculum_languages", [buildLanguageRow()], "slug");
-  await upsertRows("curriculum_levels", [buildLevelRow(structure.modules.length, words.length, skipped.length)]);
+  await upsertRows(
+    "curriculum_levels",
+    [buildLevelRow(vocabLessonCount, groupedKanji.length, words.length, groupedKanji.flatMap((group) => group.entries).length, skipped.length)],
+  );
   await upsertRowChunks("curriculum_modules", structure.modules);
   await upsertRowChunks("curriculum_lessons", structure.lessons);
   await upsertRowChunks("curriculum_vocab_categories", categories);
