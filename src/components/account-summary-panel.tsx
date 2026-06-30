@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { dashboardCourses } from "@/lib/product-content";
+import {
+  dashboardCourses,
+  type DashboardCourseSlug,
+} from "@/lib/product-content";
 import { useCourseCertificates } from "@/components/use-course-certificates";
+import {
+  getCourseAvailabilityLabel,
+  isCourseReleased,
+} from "@/lib/course-presentation";
 
 function SummaryMetric(props: { label: string; value: string }) {
   return (
@@ -15,7 +22,29 @@ function SummaryMetric(props: { label: string; value: string }) {
   );
 }
 
-function CourseAccessCard(props: { href: string; name: string }) {
+function CourseAccessCard(props: {
+  href: string;
+  name: string;
+  slug: DashboardCourseSlug;
+}) {
+  const available = isCourseReleased(props.slug);
+
+  if (!available) {
+    return (
+      <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-5 opacity-80">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-lg font-semibold text-white">{props.name}</p>
+          <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs uppercase tracking-[0.2em] text-stone-400">
+            {getCourseAvailabilityLabel(props.slug)}
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-7 text-stone-400">
+          This course is locked until the live lesson path is ready.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Link
       href={props.href}
@@ -36,6 +65,9 @@ function CourseAccessCard(props: { href: string; name: string }) {
 
 export function AccountSummaryPanel() {
   const certificates = useCourseCertificates();
+  const availableCount = dashboardCourses.filter((course) =>
+    isCourseReleased(course.slug),
+  ).length;
 
   return (
     <section className="rounded-[2rem] border border-white/10 bg-white/[0.045] p-7">
@@ -50,7 +82,7 @@ export function AccountSummaryPanel() {
       </p>
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
         <SummaryMetric label="Course access" value="All free" />
-        <SummaryMetric label="Available paths" value={String(dashboardCourses.length)} />
+        <SummaryMetric label="Available now" value={String(availableCount)} />
         <SummaryMetric label="Certificates earned" value={String(certificates.certificates.length)} />
       </div>
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -59,6 +91,7 @@ export function AccountSummaryPanel() {
             key={course.slug}
             href={`/dashboard/${course.slug}`}
             name={course.name}
+            slug={course.slug}
           />
         ))}
       </div>

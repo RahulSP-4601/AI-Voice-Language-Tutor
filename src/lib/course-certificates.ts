@@ -1,5 +1,6 @@
 import { type CourseLevel, type CourseSlug, type LanguageCourseDefinition } from "@/lib/course-definitions";
 import { type StoredCourseProgress } from "@/lib/course-progress";
+import { getLevelProductLabel } from "@/lib/course-presentation";
 
 export type StoredCertificate = {
   courseName: string;
@@ -71,7 +72,7 @@ export function buildLevelCertificate(input: {
     learnerName: input.learnerName,
     levelId: input.level.id,
     officialLabel: input.level.officialLabel,
-    productLabel: input.level.productLabel,
+    productLabel: getLevelProductLabel(input.course.framework.name, input.level),
     summary: input.level.certificateConfig.summary,
     title: input.level.certificateConfig.title,
   } satisfies StoredCertificate;

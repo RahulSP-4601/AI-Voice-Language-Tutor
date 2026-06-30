@@ -2,9 +2,11 @@
 
 import {
   type CompletionState,
+  type CourseFrameworkName,
   type CourseLevel,
   type CourseModule,
 } from "@/lib/course-definitions";
+import { getLevelProductLabel } from "@/lib/course-presentation";
 
 function SidebarModule(props: {
   isSelected: boolean;
@@ -39,6 +41,7 @@ function SidebarModule(props: {
 
 function LevelSection(props: {
   activeModuleId: string;
+  frameworkName: CourseFrameworkName;
   level: CourseLevel;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
   progressMap: Record<string, CompletionState>;
@@ -51,6 +54,7 @@ function LevelSection(props: {
     <section className="rounded-[1.45rem] border border-white/8 bg-black/20 p-4">
       <LevelHeader
         completedCount={completedCount}
+        frameworkName={props.frameworkName}
         level={props.level}
       />
       <p className="mt-3 text-sm leading-6 text-stone-400">
@@ -68,6 +72,7 @@ function LevelSection(props: {
 
 function LevelHeader(props: {
   completedCount: number;
+  frameworkName: CourseFrameworkName;
   level: CourseLevel;
 }) {
   return (
@@ -77,7 +82,7 @@ function LevelHeader(props: {
           {props.level.officialLabel}
         </p>
         <p className="mt-1 text-xs uppercase tracking-[0.22em] text-stone-400">
-          {props.level.productLabel}
+          {getLevelProductLabel(props.frameworkName, props.level)}
         </p>
       </div>
       <span
@@ -113,7 +118,7 @@ function LevelContent(props: {
 export function CourseSidebar(props: {
   activeModuleId: string;
   courseName: string;
-  frameworkName: string;
+  frameworkName: CourseFrameworkName;
   level: CourseLevel;
   onSelectModule: (level: CourseLevel, module: CourseModule) => void;
   progressMap: Record<string, CompletionState>;
@@ -129,6 +134,7 @@ export function CourseSidebar(props: {
       <div className="mt-6">
         <LevelSection
           activeModuleId={props.activeModuleId}
+          frameworkName={props.frameworkName}
           level={props.level}
           onSelectModule={props.onSelectModule}
           progressMap={props.progressMap}

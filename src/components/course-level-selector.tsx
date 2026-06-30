@@ -4,12 +4,18 @@ import Link from "next/link";
 import { DashboardCourseTabs } from "@/components/dashboard-sections";
 import { useCourseDefinition } from "@/components/use-course-definition";
 import {
+  type CourseFrameworkName,
   type CourseLevel,
   type CourseSlug,
 } from "@/lib/course-definitions";
+import { getLevelProductLabel } from "@/lib/course-presentation";
 import { getLevelRoute } from "@/lib/course-routing";
 
-function LevelCard(props: { level: CourseLevel; slug: CourseSlug }) {
+function LevelCard(props: {
+  frameworkName: CourseFrameworkName;
+  level: CourseLevel;
+  slug: CourseSlug;
+}) {
   return (
     <Link
       href={getLevelRoute(props.slug, props.level)}
@@ -19,7 +25,7 @@ function LevelCard(props: { level: CourseLevel; slug: CourseSlug }) {
         {props.level.officialLabel}
       </p>
       <p className="mt-1 text-xs uppercase tracking-[0.22em] text-amber-100">
-        {props.level.productLabel}
+        {getLevelProductLabel(props.frameworkName, props.level)}
       </p>
       <p className="mt-4 text-sm leading-7 text-stone-300">
         {props.level.objective}
@@ -40,11 +46,20 @@ function LevelMeta(props: { label: string }) {
   );
 }
 
-function LevelGrid(props: { levels: CourseLevel[]; slug: CourseSlug }) {
+function LevelGrid(props: {
+  frameworkName: CourseFrameworkName;
+  levels: CourseLevel[];
+  slug: CourseSlug;
+}) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {props.levels.map((level) => (
-        <LevelCard key={level.id} level={level} slug={props.slug} />
+        <LevelCard
+          key={level.id}
+          frameworkName={props.frameworkName}
+          level={level}
+          slug={props.slug}
+        />
       ))}
     </div>
   );
@@ -77,7 +92,11 @@ export function CourseLevelSelector(props: { slug: CourseSlug }) {
           and built around the exact difficulty you want to practice.
         </p>
       </div>
-      <LevelGrid levels={course.framework.levels} slug={props.slug} />
+      <LevelGrid
+        frameworkName={course.framework.name}
+        levels={course.framework.levels}
+        slug={props.slug}
+      />
     </section>
   );
 }

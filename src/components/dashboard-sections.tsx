@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { dashboardCourses, type DashboardCourseSlug } from "@/lib/product-content";
 import { DashboardAccountMenu } from "@/components/dashboard-account-menu";
+import {
+  getCourseAvailabilityLabel,
+  isCourseReleased,
+} from "@/lib/course-presentation";
 export { CourseWorkspace } from "@/components/course-workspace";
 
 function DashboardBrand() {
@@ -43,17 +47,26 @@ export function DashboardCourseTabs(props: {
   return (
     <section className="overflow-x-auto">
       <div className="flex min-w-max gap-3">
-        {dashboardCourses.map((course) => (
-          <Link
-            key={course.slug}
-            href={getCourseHref(course.slug)}
-            className={`rounded-full border px-4 py-2 text-sm font-medium transition ${tabClassName(
-              props.activeSlug === course.slug,
-            )}`}
-          >
-            {course.name}
-          </Link>
-        ))}
+        {dashboardCourses.map((course) =>
+          isCourseReleased(course.slug) ? (
+            <Link
+              key={course.slug}
+              href={getCourseHref(course.slug)}
+              className={`rounded-full border px-4 py-2 text-sm font-medium transition ${tabClassName(
+                props.activeSlug === course.slug,
+              )}`}
+            >
+              {course.name}
+            </Link>
+          ) : (
+            <span
+              key={course.slug}
+              className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-stone-500"
+            >
+              {course.name} · Coming soon
+            </span>
+          )
+        )}
       </div>
     </section>
   );
@@ -64,6 +77,27 @@ function OverviewCourseCard(props: {
   name: string;
   slug: DashboardCourseSlug;
 }) {
+  const available = isCourseReleased(props.slug);
+
+  if (!available) {
+    return (
+      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5 opacity-80">
+        <div className="flex items-start justify-between gap-4">
+          <p className="text-lg font-semibold text-white">{props.name}</p>
+          <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs uppercase tracking-[0.22em] text-stone-400">
+            {getCourseAvailabilityLabel(props.slug)}
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-7 text-stone-400">
+          This course is locked right now. {props.description}
+        </p>
+        <div className="mt-5 inline-flex rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs uppercase tracking-[0.22em] text-stone-400">
+          Coming soon
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Link
       href={getCourseHref(props.slug)}
@@ -97,6 +131,35 @@ export function DashboardOverview() {
             description={course.description}
           />
         ))}
+      </div>
+    </section>
+  );
+}
+
+export function CourseComingSoonPanel(props: {
+  slug: DashboardCourseSlug;
+}) {
+  const course = dashboardCourses.find((item) => item.slug === props.slug);
+
+  if (!course) {
+    return null;
+  }
+
+  return (
+    <section className="space-y-8">
+      <DashboardCourseTabs activeSlug={props.slug} />
+      <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6">
+        <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
+          Coming soon
+        </p>
+        <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
+          {course.name} lessons are not live yet.
+        </h1>
+        <p className="mt-4 max-w-3xl text-base leading-8 text-stone-300">
+          Japanese is the only unlocked course right now. We&apos;ll open the{" "}
+          {course.name} path once its lesson content, tutor playback, and
+          evaluation flow are ready for learners.
+        </p>
       </div>
     </section>
   );
