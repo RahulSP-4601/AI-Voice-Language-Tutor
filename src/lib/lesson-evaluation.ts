@@ -269,14 +269,14 @@ function fallbackCoaching(
   slug: CourseSlug,
   passed: boolean,
 ) {
-  if (slug !== "japanese" && feedback.trim()) {
+  if (feedback.trim()) {
     return feedback;
   }
 
   if (slug === "japanese") {
     return passed
-      ? `いいですね。『${phrase}』にかなり近いです。このまま次へ進みましょう。`
-      : `おしいです。『${phrase}』に近づいています。母音をはっきり、もう一回ゆっくり言ってみましょう。`;
+      ? `Nice work. That is very close to “${phrase}”. You can move on.`
+      : `Close attempt. You are getting nearer to “${phrase}”. Try it once more with clearer vowels and a slower pace.`;
   }
 
   if (slug === "german") {

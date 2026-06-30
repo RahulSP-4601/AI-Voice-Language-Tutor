@@ -42,7 +42,7 @@ const SUPPORT: Record<CourseSlug, SpeechSupport> = {
   },
   japanese: {
     deepgramLanguage: "ja",
-    feedbackLanguage: "simple Japanese",
+    feedbackLanguage: "simple English",
     label: "Japanese",
     passScore: 75,
     speechSynthesisLanguage: "ja-JP",

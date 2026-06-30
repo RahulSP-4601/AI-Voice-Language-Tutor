@@ -18,6 +18,7 @@ function ActionButton(props: {
   disabled?: boolean;
   label: string;
   muted?: boolean;
+  success?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -28,6 +29,8 @@ function ActionButton(props: {
       className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
         props.muted
           ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-stone-400"
+          : props.success
+            ? "border-emerald-300/25 bg-emerald-400/18 text-emerald-100 hover:bg-emerald-400/24"
           : "border-amber-300/20 bg-amber-300/12 text-amber-100 hover:bg-amber-300/18"
       }`}
     >
@@ -64,6 +67,7 @@ function CarouselHeader(props: {
   slug: string;
   totalCount: number;
 }) {
+  const done = Boolean(props.progress?.done);
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
@@ -74,7 +78,13 @@ function CarouselHeader(props: {
           {`${props.doneCount}/${props.totalCount} green and saved`}
         </p>
       </div>
-      <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-stone-200">
+      <span
+        className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${
+          done
+            ? "border-emerald-300/25 bg-emerald-400/12 text-emerald-100"
+            : "border-white/10 bg-black/20 text-stone-200"
+        }`}
+      >
         {statusLabel(props.slug, props.progress)}
       </span>
     </div>
@@ -178,6 +188,7 @@ function PracticeActions(props: {
         disabled={!props.canMarkDone}
         label={props.done ? "Marked green" : "Mark green"}
         muted={!props.canMarkDone}
+        success={props.done}
         onClick={props.onMarkDone}
       />
       <span className="self-center text-sm text-stone-400">
