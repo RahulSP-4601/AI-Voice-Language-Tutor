@@ -2,9 +2,14 @@
 
 import { type CourseSlug } from "@/lib/course-definitions";
 import { getSpeechSupport } from "@/lib/language-speech";
+import { generatePronunciationHint, kanaToRomaji } from "@/lib/pronunciation-hint";
 
 function hasJapaneseCharacters(value: string) {
   return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff々]/u.test(value);
+}
+
+function hasKana(value: string) {
+  return /[\u3040-\u30ff]/u.test(value);
 }
 
 function voicesForLanguage(lang: string) {
@@ -27,6 +32,14 @@ function buildUtterance(text: string, lang: string, voice?: SpeechSynthesisVoice
   return utterance;
 }
 
+function normalizeJapaneseFallbackText(value: string) {
+  if (hasKana(value)) {
+    return generatePronunciationHint(value);
+  }
+
+  return generatePronunciationHint(kanaToRomaji(value));
+}
+
 function buildPrimaryUtterance(input: {
   fallbackText?: string;
   primaryText: string;
@@ -46,7 +59,7 @@ function buildPrimaryUtterance(input: {
     fallbackText !== input.primaryText &&
     hasJapaneseCharacters(input.primaryText)
   ) {
-    return buildUtterance(fallbackText, "en-US");
+    return buildUtterance(normalizeJapaneseFallbackText(fallbackText), "en-US");
   }
 
   return buildUtterance(input.primaryText, lang);
