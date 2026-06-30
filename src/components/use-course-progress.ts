@@ -6,9 +6,7 @@ import {
   type LanguageCourseDefinition,
 } from "@/lib/course-definitions";
 import {
-  getCourseProgressKey,
-  loadCourseProgress,
-  saveCourseProgress,
+  createDefaultCourseProgress,
   type StoredCourseProgress,
 } from "@/lib/course-progress";
 import {
@@ -80,15 +78,11 @@ function useProgressLoader(
         return;
       }
 
-      const storageKey = getCourseProgressKey(nextUserId, slug);
-      const local = loadCourseProgress(
-        activeCourse,
-        window.localStorage.getItem(storageKey),
-      );
+      const fallback = createDefaultCourseProgress(activeCourse);
       const remote = nextUserId === getGuestId()
         ? null
         : await loadRemoteCourseProgress(activeCourse, slug).catch(() => null);
-      const stored = remote?.progress ?? local;
+      const stored = remote?.progress ?? fallback;
       previousProgressRef.current = stored;
       setState({
         key: `${slug}:${activeCourse.slug}`,
@@ -110,20 +104,6 @@ function getVisibleProgress(state: CourseProgressState, currentKey: string | nul
     progress: state.key === currentKey ? state.progress : null,
     ready: state.ready && !!state.progress && state.key === currentKey,
   };
-}
-
-function useLocalProgressPersistence(
-  currentKey: string | null,
-  slug: CourseSlug,
-  state: CourseProgressState,
-) {
-  useEffect(() => {
-    if (!canPersistProgress(state, currentKey) || !state.progress) {
-      return;
-    }
-
-    saveCourseProgress(getCourseProgressKey(state.userId, slug), state.progress);
-  }, [currentKey, slug, state]);
 }
 
 function useRemoteProgressPersistence(
@@ -172,7 +152,6 @@ export function useCourseProgress(
   const currentKey = getCurrentCourseKey(slug, course);
 
   useProgressLoader(course, previousProgressRef, setState, slug);
-  useLocalProgressPersistence(currentKey, slug, state);
   useRemoteProgressPersistence(currentKey, previousProgressRef, slug, state);
 
   const visible = getVisibleProgress(state, currentKey);
