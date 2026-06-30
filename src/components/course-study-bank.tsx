@@ -63,10 +63,6 @@ function speakPrompt(item: PracticeCard, slug: CourseSlug) {
       slug,
       text: item.japanese,
     },
-    {
-      slug: "english",
-      text: `In English, this means ${item.english}.`,
-    },
   ]);
 }
 
@@ -103,20 +99,25 @@ function createStoredProgress(
   },
   current?: StoredPracticeItemProgress,
 ) {
+  const nextScore = Math.max(
+    scorePracticeTranscript(item, transcript, slug),
+    Math.round(
+      (metrics.pronunciationScore + metrics.accuracyScore + metrics.fluencyScore) / 3,
+    ),
+  );
+
   return {
-    accuracyScore: metrics.accuracyScore,
+    accuracyScore: Math.max(current?.accuracyScore ?? 0, metrics.accuracyScore),
     coachingFeedback: metrics.coachingFeedback,
     done: current?.done ?? false,
-    fluencyScore: metrics.fluencyScore,
-    lastScore: Math.max(
-      scorePracticeTranscript(item, transcript, slug),
-      Math.round(
-        (metrics.pronunciationScore + metrics.accuracyScore + metrics.fluencyScore) / 3,
-      ),
-    ),
+    fluencyScore: Math.max(current?.fluencyScore ?? 0, metrics.fluencyScore),
+    lastScore: Math.max(current?.lastScore ?? 0, nextScore),
     lastTranscript: transcript,
     practicedAt: new Date().toISOString(),
-    pronunciationScore: metrics.pronunciationScore,
+    pronunciationScore: Math.max(
+      current?.pronunciationScore ?? 0,
+      metrics.pronunciationScore,
+    ),
   } satisfies StoredPracticeItemProgress;
 }
 

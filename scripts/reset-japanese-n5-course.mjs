@@ -9,6 +9,7 @@ async function main() {
 
   await deleteRows("user_level_certificates", "level_id", levelId);
   await deleteRows("user_module_attempts", "language_slug", languageSlug);
+  await deleteRows("user_practice_item_progress", "language_slug", languageSlug);
   await deleteRows("user_module_progress", "language_slug", languageSlug);
   await deleteRows("curriculum_exam_questions", "language_slug", languageSlug);
   await deleteRows("curriculum_exam_sections", "language_slug", languageSlug);

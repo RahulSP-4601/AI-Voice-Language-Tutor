@@ -1,6 +1,6 @@
 "use client";
 
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { type Dispatch, type RefObject, type SetStateAction, useEffect, useRef, useState } from "react";
 import {
   type CourseSlug,
   type LanguageCourseDefinition,
@@ -11,6 +11,10 @@ import {
   saveCourseProgress,
   type StoredCourseProgress,
 } from "@/lib/course-progress";
+import {
+  loadRemoteCourseProgress,
+  syncRemoteCourseProgress,
+} from "@/lib/course-progress-remote";
 import { getGuestId, resolveAccountProfile } from "@/lib/user-session";
 
 type CourseProgressState = {
@@ -24,6 +28,15 @@ type ProgressUpdater =
   | StoredCourseProgress
   | null
   | ((current: StoredCourseProgress | null) => StoredCourseProgress | null);
+
+function createInitialProgressState() {
+  return {
+    key: null,
+    progress: null,
+    ready: false,
+    userId: getGuestId(),
+  } satisfies CourseProgressState;
+}
 
 function getCurrentCourseKey(
   slug: CourseSlug,
@@ -49,6 +62,7 @@ function applyProgressUpdate(
 
 function useProgressLoader(
   course: LanguageCourseDefinition | null,
+  previousProgressRef: RefObject<StoredCourseProgress | null>,
   setState: Dispatch<SetStateAction<CourseProgressState>>,
   slug: CourseSlug,
 ) {
@@ -67,15 +81,20 @@ function useProgressLoader(
       }
 
       const storageKey = getCourseProgressKey(nextUserId, slug);
-      const stored = loadCourseProgress(
+      const local = loadCourseProgress(
         activeCourse,
         window.localStorage.getItem(storageKey),
       );
+      const remote = nextUserId === getGuestId()
+        ? null
+        : await loadRemoteCourseProgress(activeCourse, slug).catch(() => null);
+      const stored = remote?.progress ?? local;
+      previousProgressRef.current = stored;
       setState({
         key: `${slug}:${activeCourse.slug}`,
         progress: stored,
         ready: true,
-        userId: nextUserId,
+        userId: remote?.userId ?? nextUserId,
       });
     }
 
@@ -83,7 +102,7 @@ function useProgressLoader(
     return () => {
       active = false;
     };
-  }, [course, setState, slug]);
+  }, [course, previousProgressRef, setState, slug]);
 }
 
 function getVisibleProgress(state: CourseProgressState, currentKey: string | null) {
@@ -93,31 +112,68 @@ function getVisibleProgress(state: CourseProgressState, currentKey: string | nul
   };
 }
 
-export function useCourseProgress(
+function useLocalProgressPersistence(
+  currentKey: string | null,
   slug: CourseSlug,
-  course: LanguageCourseDefinition | null,
+  state: CourseProgressState,
 ) {
-  const [state, setState] = useState<CourseProgressState>({
-    key: null,
-    progress: null,
-    ready: false,
-    userId: getGuestId(),
-  });
-  const currentKey = getCurrentCourseKey(slug, course);
-
-  useProgressLoader(course, setState, slug);
   useEffect(() => {
-    if (!canPersistProgress(state, currentKey)) {
+    if (!canPersistProgress(state, currentKey) || !state.progress) {
+      return;
+    }
+
+    saveCourseProgress(getCourseProgressKey(state.userId, slug), state.progress);
+  }, [currentKey, slug, state]);
+}
+
+function useRemoteProgressPersistence(
+  currentKey: string | null,
+  previousProgressRef: RefObject<StoredCourseProgress | null>,
+  slug: CourseSlug,
+  state: CourseProgressState,
+) {
+  useEffect(() => {
+    if (!canPersistProgress(state, currentKey) || state.userId === getGuestId()) {
       return;
     }
 
     const progress = state.progress;
-    if (!progress) {
+    const previous = previousProgressRef.current;
+    if (!progress || !previous) {
+      previousProgressRef.current = progress;
       return;
     }
 
-    saveCourseProgress(getCourseProgressKey(state.userId, slug), progress);
-  }, [currentKey, slug, state]);
+    const timer = window.setTimeout(() => {
+      void syncRemoteCourseProgress({
+        next: progress,
+        previous,
+        slug,
+        userId: state.userId,
+      })
+        .catch((error) => {
+          console.error("Unable to sync course progress.", error);
+        })
+        .finally(() => {
+          previousProgressRef.current = progress;
+        });
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [currentKey, previousProgressRef, slug, state]);
+}
+
+export function useCourseProgress(
+  slug: CourseSlug,
+  course: LanguageCourseDefinition | null,
+) {
+  const previousProgressRef = useRef<StoredCourseProgress | null>(null);
+  const [state, setState] = useState<CourseProgressState>(createInitialProgressState);
+  const currentKey = getCurrentCourseKey(slug, course);
+
+  useProgressLoader(course, previousProgressRef, setState, slug);
+  useLocalProgressPersistence(currentKey, slug, state);
+  useRemoteProgressPersistence(currentKey, previousProgressRef, slug, state);
 
   const visible = getVisibleProgress(state, currentKey);
   return {
