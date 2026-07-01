@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit, getRequestIp } from "@/lib/api-rate-limit";
 import {
   courseSlugs,
   type CourseLesson,
@@ -10,6 +11,11 @@ import {
   scoreLessonWithOpenAi,
   transcribeWithDeepgram,
 } from "@/lib/lesson-evaluation";
+
+export const runtime = "nodejs";
+export const maxDuration = 30;
+
+const MAX_AUDIO_FILE_SIZE = 8 * 1024 * 1024;
 
 function isCourseSlug(value: string): value is CourseSlug {
   return courseSlugs.includes(value as CourseSlug);
@@ -27,6 +33,8 @@ async function parsePracticeRequest(request: Request) {
   if (
     !isCourseSlug(slug) ||
     !(audioFile instanceof File) ||
+    audioFile.size <= 0 ||
+    audioFile.size > MAX_AUDIO_FILE_SIZE ||
     !japanese ||
     !reading
   ) {
@@ -69,8 +77,41 @@ function invalidRequestResponse() {
   );
 }
 
+function createRateLimitResponse(message: string, resetAt: number) {
+  return NextResponse.json(
+    { error: message },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(Math.max(1, Math.ceil((resetAt - Date.now()) / 1000))),
+      },
+    },
+  );
+}
+
+function enforcePracticeEvaluationLimit(request: Request) {
+  const rateLimit = enforceRateLimit({
+    key: `practice-evaluate:${getRequestIp(request)}`,
+    limit: 12,
+    windowMs: 60_000,
+  });
+  if (rateLimit.success) {
+    return null;
+  }
+
+  return createRateLimitResponse(
+    "Too many practice evaluations. Please try again shortly.",
+    rateLimit.resetAt,
+  );
+}
+
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = enforcePracticeEvaluationLimit(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const parsed = await parsePracticeRequest(request);
     if (!parsed) {
       return invalidRequestResponse();

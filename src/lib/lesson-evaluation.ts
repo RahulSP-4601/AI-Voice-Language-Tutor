@@ -3,6 +3,7 @@ import {
   buildSpeechScoreBand,
   getSpeechSupport,
 } from "@/lib/language-speech";
+import { fetchWithTimeout, isAbortError } from "@/lib/runtime-guards";
 
 type DeepgramResult = {
   confidence: number;
@@ -18,19 +19,29 @@ export async function transcribeWithDeepgram(input: {
   slug: CourseSlug;
 }) {
   const support = getSpeechSupport(input.slug);
-  const response = await fetch(
-    `https://api.deepgram.com/v1/listen?model=${encodeURIComponent(
-      input.deepgramModel,
-    )}&smart_format=true&language=${encodeURIComponent(support.deepgramLanguage)}`,
-    {
-      body: input.audioBuffer,
-      headers: {
-        Authorization: `Token ${input.deepgramKey}`,
-        "Content-Type": input.contentType,
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(
+      `https://api.deepgram.com/v1/listen?model=${encodeURIComponent(
+        input.deepgramModel,
+      )}&smart_format=true&language=${encodeURIComponent(support.deepgramLanguage)}`,
+      {
+        body: input.audioBuffer,
+        headers: {
+          Authorization: `Token ${input.deepgramKey}`,
+          "Content-Type": input.contentType,
+        },
+        method: "POST",
+        timeoutMs: 15000,
       },
-      method: "POST",
-    },
-  );
+    );
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw new Error("Deepgram transcription timed out.");
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
     throw new Error("Deepgram transcription failed.");
@@ -68,14 +79,24 @@ export async function scoreLessonWithOpenAi(input: {
   openAiModel: string;
   slug: CourseSlug;
 }) {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    body: JSON.stringify(buildOpenAiBody(input)),
-    headers: {
-      Authorization: `Bearer ${input.openAiKey}`,
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
+  let response: Response;
+  try {
+    response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
+      body: JSON.stringify(buildOpenAiBody(input)),
+      headers: {
+        Authorization: `Bearer ${input.openAiKey}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      timeoutMs: 20000,
+    });
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw new Error("OpenAI lesson scoring timed out.");
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
     throw new Error("OpenAI lesson scoring failed.");

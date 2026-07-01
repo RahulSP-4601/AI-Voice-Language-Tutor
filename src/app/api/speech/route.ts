@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit, getRequestIp } from "@/lib/api-rate-limit";
 import { type CourseSlug, isCourseSlug } from "@/lib/course-definitions";
+import { fetchWithTimeout, isAbortError } from "@/lib/runtime-guards";
 import { getTutorSpeechModel } from "@/lib/tutor-speech";
+
+export const runtime = "nodejs";
+export const maxDuration = 30;
 
 type SpeechRequestBody = {
   slug?: string;
@@ -20,7 +25,7 @@ function parseBody(body: SpeechRequestBody) {
   const slug = body.slug?.trim();
   const text = body.text?.trim();
 
-  if (!slug || !isCourseSlug(slug) || !text) {
+  if (!slug || !isCourseSlug(slug) || !text || text.length > 400) {
     return null;
   }
 
@@ -28,19 +33,28 @@ function parseBody(body: SpeechRequestBody) {
 }
 
 async function requestDeepgramSpeech(input: { slug: CourseSlug; text: string }) {
-  return fetch(
-    `https://api.deepgram.com/v1/speak?model=${encodeURIComponent(
-      getTutorSpeechModel(input.slug),
-    )}&encoding=mp3`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Token ${getDeepgramKey()}`,
-        "Content-Type": "application/json",
+  try {
+    return fetchWithTimeout(
+      `https://api.deepgram.com/v1/speak?model=${encodeURIComponent(
+        getTutorSpeechModel(input.slug),
+      )}&encoding=mp3`,
+      {
+        body: JSON.stringify({ text: input.text }),
+        headers: {
+          Authorization: `Token ${getDeepgramKey()}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        timeoutMs: 15000,
       },
-      body: JSON.stringify({ text: input.text }),
-    },
-  );
+    );
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw new Error("Tutor speech generation timed out.");
+    }
+
+    throw error;
+  }
 }
 
 async function toSpeechResponse(response: Response) {
@@ -63,6 +77,23 @@ async function toSpeechResponse(response: Response) {
 
 export async function POST(request: Request) {
   try {
+    const rateLimit = enforceRateLimit({
+      key: `speech:${getRequestIp(request)}`,
+      limit: 30,
+      windowMs: 60_000,
+    });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: "Too many speech requests. Please try again shortly." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.max(1, Math.ceil((rateLimit.resetAt - Date.now()) / 1000))),
+          },
+        },
+      );
+    }
+
     const body = (await request.json()) as SpeechRequestBody;
     const parsed = parseBody(body);
 

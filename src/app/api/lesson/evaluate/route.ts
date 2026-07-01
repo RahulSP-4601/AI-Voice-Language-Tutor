@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { enforceRateLimit, getRequestIp } from "@/lib/api-rate-limit";
 import {
   courseSlugs,
   type CourseLesson,
@@ -11,6 +12,11 @@ import {
   scoreLessonWithOpenAi,
   transcribeWithDeepgram,
 } from "@/lib/lesson-evaluation";
+
+export const runtime = "nodejs";
+export const maxDuration = 30;
+
+const MAX_AUDIO_FILE_SIZE = 8 * 1024 * 1024;
 
 type LessonLookupError = "course_unavailable" | "lesson_not_found";
 type LessonLookupResult =
@@ -52,7 +58,12 @@ async function parseEvaluationRequest(request: Request) {
   const lessonId = String(formData.get("lessonId") ?? "");
   const audioFile = formData.get("audio");
 
-  if (!isCourseSlug(slug) || !(audioFile instanceof File)) {
+  if (
+    !isCourseSlug(slug) ||
+    !(audioFile instanceof File) ||
+    audioFile.size <= 0 ||
+    audioFile.size > MAX_AUDIO_FILE_SIZE
+  ) {
     return { errorResponse: invalidRequestResponse() } as const;
   }
 
@@ -81,8 +92,41 @@ function hasLookupError(lookup: LessonLookupResult) {
   return "error" in lookup;
 }
 
+function createRateLimitResponse(message: string, resetAt: number) {
+  return NextResponse.json(
+    { error: message },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(Math.max(1, Math.ceil((resetAt - Date.now()) / 1000))),
+      },
+    },
+  );
+}
+
+function enforceLessonEvaluationLimit(request: Request) {
+  const rateLimit = enforceRateLimit({
+    key: `lesson-evaluate:${getRequestIp(request)}`,
+    limit: 12,
+    windowMs: 60_000,
+  });
+  if (rateLimit.success) {
+    return null;
+  }
+
+  return createRateLimitResponse(
+    "Too many lesson evaluations. Please try again shortly.",
+    rateLimit.resetAt,
+  );
+}
+
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = enforceLessonEvaluationLimit(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const parsed = await parseEvaluationRequest(request);
     if ("errorResponse" in parsed) {
       return parsed.errorResponse;
