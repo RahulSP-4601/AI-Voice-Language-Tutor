@@ -43,32 +43,32 @@ export const landingLanguages = [
 
 export const landingSteps = [
   {
-    title: "Open the landing page and choose a course",
+    title: "Create an account",
     description:
-      "The home page explains the voice-first lesson style, shows which languages exist, and sends the learner into sign-in when they are ready to begin.",
+      "Sign up or log in first so the learner can enter the platform and access their dashboard.",
   },
   {
-    title: "Sign in, then enter the dashboard",
+    title: "Choose a language",
     description:
-      "Google auth handles account access first. After login, users arrive in a simple dashboard where they can see the available courses and pick their path.",
+      "After entering the dashboard, the learner selects the language they want to study.",
   },
   {
-    title: "Start a level and practice inside the lesson runner",
+    title: "Choose the difficulty",
     description:
-      "Inside a course, learners choose a level, open a module, hear the tutor phrase, record an answer, review the transcript and feedback, then continue step by step.",
+      "Inside the language path, the learner picks the level or difficulty that matches where they want to begin.",
   },
   {
-    title: "Track progress as modules are completed",
+    title: "Start learning",
     description:
-      "The course workspace stores lesson progress, marks modules in progress or completed, and prepares certificates when a full level is finished.",
+      "Open the lesson and begin practicing through the guided learning flow.",
   },
 ] as const;
 
 export const processHighlights = [
-  "Japanese is the only live course right now, so the page should say that clearly.",
-  "Google auth leads into the dashboard without a separate onboarding maze.",
-  "Lessons already support tutor playback, recording, transcript capture, and scoring feedback.",
-  "Module progress is saved, and finished levels can unlock certificates.",
+  "Create an account to enter the learning dashboard.",
+  "Choose the language you want to learn.",
+  "Pick the difficulty level that fits your starting point.",
+  "Start the lesson and begin learning right away.",
 ] as const;
 
 export const landingHeroStats = [

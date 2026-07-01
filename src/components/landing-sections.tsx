@@ -307,7 +307,7 @@ function ProcessOverview() {
   return (
     <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
       <p className="text-xs uppercase tracking-[0.3em] text-emerald-200">
-        Why this flow works
+        Simple learner flow
       </p>
       <div className="mt-4 space-y-3">
         {processHighlights.map((item) => (
@@ -331,8 +331,8 @@ export function ProcessSection() {
         <div className="max-w-xl space-y-6">
           <SectionHeading
             eyebrow="How It Works"
-            title="From landing page to spoken practice in a real lesson flow."
-            body="The current product flow is simple: users sign in with Google, enter the dashboard, open the released course, choose a level, and practice through guided lesson steps with voice feedback."
+            title="Start in four simple steps."
+            body="Create an account, choose your language, choose the difficulty, and start learning."
           />
           <ProcessOverview />
         </div>
@@ -345,41 +345,6 @@ export function ProcessSection() {
               description={step.description}
             />
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function FinalCtaSection() {
-  return (
-    <section className="px-6 pb-20 pt-10 sm:px-10 lg:px-14">
-      <div className="mx-auto max-w-7xl rounded-[2rem] border border-amber-300/15 bg-[linear-gradient(135deg,rgba(247,200,116,0.16),rgba(24,36,34,0.9))] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.24)]">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
-              Enter the dashboard and start the live Japanese course.
-            </h2>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-stone-200">
-              Sign in with Google, open the released Japanese path, and move
-              directly into the lesson workspace with tutor playback, recording,
-              transcript review, and progress tracking.
-            </p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <Link
-              href="/auth"
-              className="rounded-full bg-slate-950 px-7 py-4 text-center text-base font-semibold text-white transition hover:bg-black"
-            >
-              Continue to Google Signup
-            </Link>
-            <Link
-              href="/dashboard"
-              className="rounded-full border border-white/15 bg-white/5 px-7 py-4 text-center text-base font-medium text-white transition hover:border-white/30 hover:bg-white/10"
-            >
-              Preview Dashboard
-            </Link>
-          </div>
         </div>
       </div>
     </section>

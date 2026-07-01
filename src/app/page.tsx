@@ -1,5 +1,4 @@
 import {
-  FinalCtaSection,
   HeroSection,
   LanguagesSection,
   ProcessSection,
@@ -11,7 +10,6 @@ export default function Home() {
       <HeroSection />
       <LanguagesSection />
       <ProcessSection />
-      <FinalCtaSection />
     </main>
   );
 }
