@@ -1,7 +1,7 @@
 "use client";
 
 import { type StoredPracticeItemProgress } from "@/lib/course-progress";
-import { PRACTICE_PASS_SCORE, type PracticeCard } from "@/lib/module-practice";
+import { type PracticeCard } from "@/lib/module-practice";
 
 function Metric(props: { label: string; value: string }) {
   return (
@@ -41,9 +41,6 @@ function ActionButton(props: {
 
 function statusLabel(slug: string, progress?: StoredPracticeItemProgress) {
   if (progress?.done) return "Green and saved";
-  if ((progress?.lastScore ?? 0) >= PRACTICE_PASS_SCORE) {
-    return "Pass ready";
-  }
   if (typeof progress?.lastScore === "number") return `${progress.lastScore}/100`;
   return "Ready to practice";
 }
@@ -194,7 +191,7 @@ function PracticeActions(props: {
       <span className="self-center text-sm text-stone-400">
         {props.canMoveNext
           ? "You can move to the next card."
-          : "Get a perfect match first, then mark this one green."}
+          : "Record one attempt, then mark this one green when you are ready."}
       </span>
     </div>
   );

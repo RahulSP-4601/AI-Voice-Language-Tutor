@@ -11,7 +11,6 @@ import {
 } from "@/lib/course-definitions";
 import { type StoredPracticeItemProgress } from "@/lib/course-progress";
 import {
-  PRACTICE_PASS_SCORE,
   scorePracticeTranscript,
   type ModulePracticeDeck,
   type PracticeCard,
@@ -58,8 +57,8 @@ function EmptyState(props: { message: string }) {
   );
 }
 
-function isPassScore(score?: number | null) {
-  return typeof score === "number" && score >= PRACTICE_PASS_SCORE;
+function hasScoredAttempt(score?: number | null) {
+  return typeof score === "number";
 }
 
 function speakPrompt(item: PracticeCard, slug: CourseSlug) {
@@ -194,11 +193,11 @@ function buildCarouselState(input: {
   return {
     canGoNext:
       input.selectedIndex < input.items.length - 1 &&
-      (isPassScore(current?.lastScore) ||
+      (hasScoredAttempt(current?.lastScore) ||
         Boolean(current?.done) ||
         input.selectedIndex < doneCount),
     canGoPrev: input.selectedIndex > 0,
-    canMarkDone: isPassScore(current?.lastScore) || Boolean(current?.done),
+    canMarkDone: hasScoredAttempt(current?.lastScore) || Boolean(current?.done),
     current,
     doneCount,
     isRecording:
