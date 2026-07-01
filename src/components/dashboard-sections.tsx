@@ -22,7 +22,7 @@ function DashboardBrand() {
 
 export function DashboardTopBar() {
   return (
-    <header className="flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+    <header className="relative z-40 flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-[#12191b] px-5 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:flex-row sm:items-center sm:justify-between">
       <DashboardBrand />
       <DashboardAccountMenu />
     </header>

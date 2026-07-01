@@ -10,7 +10,7 @@ function MenuLink(props: { href: string; label: string; sublabel: string }) {
   return (
     <Link
       href={props.href}
-      className="block rounded-2xl border border-white/8 bg-black/20 px-4 py-3 transition hover:border-white/15 hover:bg-black/30"
+      className="block rounded-2xl border border-white/10 bg-[#131a1d] px-4 py-3 transition hover:border-white/20 hover:bg-[#182126]"
     >
       <p className="text-sm font-medium text-white">{props.label}</p>
       <p className="mt-1 text-xs text-stone-400">{props.sublabel}</p>
@@ -28,7 +28,7 @@ function AccountTrigger(props: {
     <button
       type="button"
       onClick={props.onClick}
-      className="flex items-center gap-3 rounded-full border border-white/12 bg-black/20 px-3 py-2 text-left transition hover:border-white/20 hover:bg-black/30"
+      className="flex items-center gap-3 rounded-full border border-white/12 bg-[#101719] px-3 py-2 text-left transition hover:border-white/20 hover:bg-[#162023]"
     >
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#8f9cf9_0%,#d0d5ff_100%)] text-sm font-semibold text-slate-950">
         {props.initials}
@@ -48,8 +48,8 @@ function AccountPanel(props: {
   onLogout: () => Promise<void>;
 }) {
   return (
-    <div className="absolute right-0 z-20 mt-3 w-[20rem] rounded-[1.5rem] border border-white/10 bg-[#0c1214]/96 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.35)] backdrop-blur">
-      <div className="rounded-[1.2rem] border border-white/8 bg-white/[0.03] p-4">
+    <div className="absolute right-0 top-full z-50 mt-3 w-[20rem] rounded-[1.5rem] border border-white/12 bg-[#0b1113] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.55)]">
+      <div className="rounded-[1.2rem] border border-white/10 bg-[#131a1d] p-4">
         <p className="text-sm font-medium text-white">{props.name}</p>
         <p className="mt-1 text-xs text-stone-400">{props.email}</p>
       </div>
@@ -67,7 +67,7 @@ function AccountPanel(props: {
         <button
           type="button"
           onClick={props.onLogout}
-          className="w-full rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-left transition hover:border-red-400/35 hover:bg-red-500/15"
+          className="w-full rounded-2xl border border-red-400/20 bg-[#2a1618] px-4 py-3 text-left transition hover:border-red-400/35 hover:bg-[#34191c]"
         >
           <p className="text-sm font-medium text-red-200">Logout</p>
           <p className="mt-1 text-xs text-red-200/70">
@@ -118,7 +118,7 @@ export function DashboardAccountMenu() {
   }
 
   return (
-    <div ref={menuRef} className="relative self-start sm:self-auto">
+    <div ref={menuRef} className="relative z-50 self-start sm:self-auto">
       <AccountTrigger
         initials={summary.initials}
         name={summary.name}
