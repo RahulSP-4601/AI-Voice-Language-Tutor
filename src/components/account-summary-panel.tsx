@@ -5,7 +5,6 @@ import {
   dashboardCourses,
   type DashboardCourseSlug,
 } from "@/lib/product-content";
-import { useCourseCertificates } from "@/components/use-course-certificates";
 import {
   getCourseAvailabilityLabel,
   isCourseReleased,
@@ -64,7 +63,6 @@ function CourseAccessCard(props: {
 }
 
 export function AccountSummaryPanel() {
-  const certificates = useCourseCertificates();
   const availableCount = dashboardCourses.filter((course) =>
     isCourseReleased(course.slug),
   ).length;
@@ -78,12 +76,11 @@ export function AccountSummaryPanel() {
         Free access and saved progress
       </h1>
       <p className="mt-4 max-w-2xl text-base leading-8 text-stone-300">
-        All courses stay free. Your account keeps track of course access, ongoing progress, and every certificate you earn.
+        All courses stay free. Your account keeps track of course access and ongoing learning progress.
       </p>
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
+      <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <SummaryMetric label="Course access" value="All free" />
         <SummaryMetric label="Available now" value={String(availableCount)} />
-        <SummaryMetric label="Certificates earned" value={String(certificates.certificates.length)} />
       </div>
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
         {dashboardCourses.map((course) => (

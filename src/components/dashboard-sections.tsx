@@ -191,7 +191,7 @@ export function AccountSummary() {
       </h1>
       <p className="mt-4 max-w-2xl text-base leading-8 text-stone-300">
         All available courses are free. This area can track your active
-        languages, completed modules, and later certificates in one place.
+        languages and completed modules in one place.
       </p>
       <div className="mt-8 grid gap-4">
         <PurchasedCourseCard name="Japanese course" status="Available" />

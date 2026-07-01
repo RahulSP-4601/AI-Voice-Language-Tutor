@@ -82,12 +82,11 @@ export const dashboardCourses = [
     slug: "japanese",
     name: "Japanese",
     description:
-      "Start the full JLPT N5 journey from absolute zero through romaji, kana, grammar, roleplay, and the free certificate exam.",
+      "Start the full JLPT N5 journey from absolute zero through romaji, kana, grammar, roleplay, and guided speaking practice.",
     currentLevel: "Basic 1",
     statusNote: "Absolute-zero missions are ready to start.",
     bundleStatus: "Open Access",
     bundleNote: "All current lessons are available to every learner.",
-    certificateState: "Open",
     nextLesson: "What is Japanese?",
     officialFramework: "JLPT",
     levels: [
@@ -107,7 +106,6 @@ export const dashboardCourses = [
     statusNote: "Ready when you want to start.",
     bundleStatus: "Open Access",
     bundleNote: "Learners can begin the English course immediately.",
-    certificateState: "Available",
     nextLesson: "Introductions and basics",
     officialFramework: "CEFR",
     levels: [
@@ -128,7 +126,6 @@ export const dashboardCourses = [
     statusNote: "Waiting for first lesson.",
     bundleStatus: "Open Access",
     bundleNote: "Learners can begin the German course immediately.",
-    certificateState: "Available",
     nextLesson: "Numbers and greetings",
     officialFramework: "CEFR",
     levels: [
@@ -144,12 +141,11 @@ export const dashboardCourses = [
     slug: "spanish",
     name: "Spanish",
     description:
-      "Spanish opens as its own course path for warm daily speaking practice and certificate-driven progression.",
+      "Spanish opens as its own course path for warm daily speaking practice and structured progression.",
     currentLevel: "Basic 1",
     statusNote: "Free foundation course available.",
     bundleStatus: "Open Access",
     bundleNote: "Learners can begin the Spanish course immediately.",
-    certificateState: "Available",
     nextLesson: "Common phrases",
     officialFramework: "CEFR",
     levels: [
@@ -170,7 +166,6 @@ export const dashboardCourses = [
     statusNote: "Free course path is ready.",
     bundleStatus: "Open Access",
     bundleNote: "Learners can begin the French course immediately.",
-    certificateState: "Available",
     nextLesson: "Sounds and greetings",
     officialFramework: "CEFR",
     levels: [

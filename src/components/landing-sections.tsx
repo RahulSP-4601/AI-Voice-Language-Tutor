@@ -34,7 +34,7 @@ function HeroCopy() {
     <div className="space-y-6">
       <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-4 py-2 text-xs text-amber-100 sm:text-sm">
         <span className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_20px_rgba(252,211,77,0.85)]" />
-        Start from zero. Speak with AI. Get certified.
+        Start from zero. Speak with AI. Build confidence.
       </div>
       <div className="max-w-4xl space-y-5">
         <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl lg:text-7xl">
@@ -126,7 +126,7 @@ function SessionCard() {
         <div className="grid gap-4 sm:grid-cols-3">
           <MetricCard label="Pronunciation" value="89%" />
           <MetricCard label="Confidence" value="92%" />
-          <MetricCard label="Certificate" value="Ready" />
+          <MetricCard label="Lesson flow" value="Live" />
         </div>
       </div>
     </div>

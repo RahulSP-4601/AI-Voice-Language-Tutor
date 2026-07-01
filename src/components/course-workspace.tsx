@@ -1,11 +1,9 @@
 "use client";
 
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { CourseLayout } from "@/components/course-layout";
-import { useCourseCertificates } from "@/components/use-course-certificates";
 import { useCourseDefinition } from "@/components/use-course-definition";
 import { useCourseProgress } from "@/components/use-course-progress";
-import { isLevelComplete } from "@/lib/course-certificates";
 import {
   type CourseLevel,
   type LanguageCourseDefinition,
@@ -106,22 +104,6 @@ function useActiveCourse(slug: CourseSlug, preferredLevel?: string) {
   const course = courseState.course;
   const [selection, setSelection] = useState<CourseSelection | null>(null);
   const { progress, ready, setProgress } = useCourseProgress(slug, course);
-  const certificates = useCourseCertificates();
-
-  useEffect(() => {
-    if (!course || !progress || !ready || !certificates.ready) {
-      return;
-    }
-
-    course.framework.levels.forEach((level) => {
-      if (
-        isLevelComplete(level, progress) &&
-        !certificates.hasCertificate(course.slug, level.id)
-      ) {
-        certificates.issueLevelCertificate(course, level);
-      }
-    });
-  }, [certificates, course, progress, ready]);
 
   if (courseState.loading) {
     return { ready: false } as const;
