@@ -56,21 +56,14 @@ function AuthButton(props: {
   );
 }
 
-function AuthStatus({
-  envReady,
-  message,
-}: {
-  envReady: boolean;
-  message: string | null;
-}) {
+function AuthStatus({ message }: { message: string | null }) {
+  if (!message) {
+    return null;
+  }
+
   return (
-    <div className="mt-6 rounded-[1.3rem] border border-white/8 bg-black/20 p-4 text-sm leading-7 text-stone-300">
-      <p>
-        {envReady
-          ? "Supabase public environment is available. Clicking a button starts Google OAuth."
-          : "Supabase OAuth is not configured yet in this local environment, so the buttons show setup-safe messaging instead of failing silently."}
-      </p>
-      {message ? <p className="mt-3 text-amber-200">{message}</p> : null}
+    <div className="mt-6 rounded-[1.3rem] border border-amber-300/20 bg-amber-300/[0.06] p-4 text-sm leading-7 text-amber-100">
+      <p>{message}</p>
     </div>
   );
 }
@@ -136,7 +129,7 @@ export function AuthCard() {
             secondary
           />
         </div>
-        <AuthStatus envReady={envReady} message={message} />
+        <AuthStatus message={message} />
       </div>
     </section>
   );

@@ -1,10 +1,8 @@
 import {
-  ComparisonSection,
   FinalCtaSection,
   HeroSection,
   LanguagesSection,
   ProcessSection,
-  SocialProofSection,
 } from "@/components/landing-sections";
 
 export default function Home() {
@@ -13,8 +11,6 @@ export default function Home() {
       <HeroSection />
       <LanguagesSection />
       <ProcessSection />
-      <ComparisonSection />
-      <SocialProofSection />
       <FinalCtaSection />
     </main>
   );

@@ -1,12 +1,12 @@
 import Link from "next/link";
 import {
-  landingComparison,
+  type DashboardCourseSlug,
   landingHeroStats,
   landingLanguages,
   landingSteps,
-  landingTestimonials,
   processHighlights,
 } from "@/lib/product-content";
+import { getCourseAvailabilityLabel, isCourseReleased } from "@/lib/course-presentation";
 
 function LandingNav() {
   return (
@@ -197,25 +197,44 @@ function SectionHeading(props: {
 }
 
 function LanguageCard({
+  framework,
+  levels,
   name,
   promise,
-  script,
+  slug,
 }: {
+  framework: string;
+  levels: string;
   name: string;
   promise: string;
-  script: string;
+  slug: DashboardCourseSlug;
 }) {
+  const isReleased = isCourseReleased(slug);
+
   return (
     <article className="group rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08]">
-      <div className="mb-6 inline-flex rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-amber-100">
-        {script}
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h3 className="text-2xl font-semibold text-white">{name}</h3>
+        <span
+          className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.24em] ${
+            isReleased
+              ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
+              : "border-white/10 bg-black/20 text-stone-400"
+          }`}
+        >
+          {getCourseAvailabilityLabel(slug)}
+        </span>
       </div>
-      <h3 className="text-2xl font-semibold text-white">{name}</h3>
       <p className="mt-3 text-sm leading-7 text-stone-300">{promise}</p>
       <div className="mt-8 space-y-3 text-sm text-stone-200">
-        <DetailRow label="Course access" value="Free" valueClassName="text-emerald-200" />
+        <DetailRow
+          label="Course access"
+          value={isReleased ? "Open now" : "Coming soon"}
+          valueClassName={isReleased ? "text-emerald-200" : "text-stone-300"}
+        />
+        <DetailRow label="Framework" value={framework} />
+        <DetailRow label="Course scope" value={levels} />
         <DetailRow label="Lesson format" value="Voice-first" />
-        <DetailRow label="Total levels" value="5" />
       </div>
     </article>
   );
@@ -247,8 +266,8 @@ export function LanguagesSection() {
         <SectionHeading
           className="mb-8 max-w-2xl"
           eyebrow="Language Paths"
-          title="Browse every language and start learning right away."
-          body="Every path begins with a structured foundation level built around speaking, listening, and guided repetition."
+          title="Start with the live course now and see the full language roadmap."
+          body="Japanese is already open in the product today. The rest of the language paths are visible so learners can see what is live now and what is coming next."
         />
         <div className="grid gap-5 lg:grid-cols-5">
           {landingLanguages.map((language) => (
@@ -312,8 +331,8 @@ export function ProcessSection() {
         <div className="max-w-xl space-y-6">
           <SectionHeading
             eyebrow="How It Works"
-            title="A clean funnel from premium first impression to live language practice."
-            body="We lead with a premium first impression, then move learners directly into guided speaking sessions so the value feels real fast."
+            title="From landing page to spoken practice in a real lesson flow."
+            body="The current product flow is simple: users sign in with Google, enter the dashboard, open the released course, choose a level, and practice through guided lesson steps with voice feedback."
           />
           <ProcessOverview />
         </div>
@@ -332,106 +351,19 @@ export function ProcessSection() {
   );
 }
 
-function ComparisonCard({
-  description,
-  title,
-}: {
-  description: string;
-  title: string;
-}) {
-  return (
-    <div className="rounded-[1.5rem] border border-white/8 bg-black/20 p-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
-        <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-emerald-200">
-          Better
-        </span>
-      </div>
-      <p className="mt-3 text-sm leading-7 text-stone-300">{description}</p>
-    </div>
-  );
-}
-
-export function ComparisonSection() {
-  return (
-    <section className="px-6 py-18 sm:px-10 lg:px-14">
-      <div className="mx-auto max-w-7xl rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.24)]">
-        <div className="grid gap-8 lg:grid-cols-2">
-          <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-amber-200">
-              Why We Win
-            </p>
-            <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
-              Not another flashcard app. A speaking product with outcome energy.
-            </h2>
-          </div>
-          <div className="grid gap-4">
-            {landingComparison.map((item) => (
-              <ComparisonCard key={item.title} {...item} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TestimonialCard({
-  name,
-  quote,
-  role,
-}: {
-  name: string;
-  quote: string;
-  role: string;
-}) {
-  return (
-    <blockquote className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-6">
-      <p className="text-base leading-8 text-stone-200">“{quote}”</p>
-      <footer className="mt-6">
-        <p className="font-semibold text-white">{name}</p>
-        <p className="text-sm text-stone-400">{role}</p>
-      </footer>
-    </blockquote>
-  );
-}
-
-export function SocialProofSection() {
-  return (
-    <section className="px-6 py-18 sm:px-10 lg:px-14">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          className="mb-8 max-w-2xl"
-          eyebrow="Premium Feel"
-          title="The first phase already needs to feel investable."
-          body="We want the product to look like a real modern education business from the first click, not a placeholder app waiting for later polish."
-        />
-        <div className="grid gap-5 lg:grid-cols-3">
-          {landingTestimonials.map((item) => (
-            <TestimonialCard key={item.name} {...item} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function FinalCtaSection() {
   return (
     <section className="px-6 pb-20 pt-10 sm:px-10 lg:px-14">
       <div className="mx-auto max-w-7xl rounded-[2rem] border border-amber-300/15 bg-[linear-gradient(135deg,rgba(247,200,116,0.16),rgba(24,36,34,0.9))] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.24)]">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-amber-100">
-              Launch Funnel
-            </p>
             <h2 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">
-              Free access first. Real speaking practice from the first session.
+              Enter the dashboard and start the live Japanese course.
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-8 text-stone-200">
-              Start with Google login, let the user test the voice tutor in
-              Basic 1, then bring them into the dashboard and course runner to
-              keep learning.
+              Sign in with Google, open the released Japanese path, and move
+              directly into the lesson workspace with tutor playback, recording,
+              transcript review, and progress tracking.
             </p>
           </div>
           <div className="flex flex-col gap-4">

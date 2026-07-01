@@ -1,98 +1,80 @@
 export const landingLanguages = [
   {
+    slug: "japanese",
     name: "Japanese",
-    script: "Kana + Voice",
-    promise: "From zero to confident introductions, pronunciation, and a free first certificate.",
+    promise:
+      "The live course available today. Start with pronunciation, guided replies, and the first JLPT N5 speaking steps.",
+    framework: "JLPT N5",
+    levels: "5 levels",
   },
   {
+    slug: "german",
     name: "German",
-    script: "A1 Foundation",
-    promise: "Daily speaking drills designed for structure, clarity, and practical survival phrases.",
+    promise:
+      "Planned next as a structured CEFR speaking path with guided practice and practical survival phrases.",
+    framework: "CEFR A1-C2",
+    levels: "6 levels",
   },
   {
+    slug: "spanish",
     name: "Spanish",
-    script: "Everyday Flow",
-    promise: "Warm, high-frequency conversation practice with faster speaking confidence gains.",
+    promise:
+      "Designed for daily conversation drills, high-frequency phrases, and confidence-building speaking sessions.",
+    framework: "CEFR A1-C2",
+    levels: "6 levels",
   },
   {
+    slug: "english",
     name: "English",
-    script: "Global Fluency",
-    promise: "Professional speaking progress for interviews, travel, and daily confidence building.",
+    promise:
+      "Built for interview practice, clear everyday communication, and structured spoken progress.",
+    framework: "CEFR A1-C2",
+    levels: "6 levels",
   },
   {
+    slug: "french",
     name: "French",
-    script: "Accent Focus",
-    promise: "Elegant voice-first practice for rhythm, listening, and clean first-level progress.",
+    promise:
+      "Planned as a voice-first course for listening, rhythm, and clean beginner speaking progress.",
+    framework: "CEFR A1-C2",
+    levels: "6 levels",
   },
 ] as const;
 
 export const landingSteps = [
   {
-    title: "Hook the user with a premium promise",
+    title: "Open the landing page and choose a course",
     description:
-      "The landing page leads with a bold AI-speaking proposition, a free certificate story, and a clear first action.",
+      "The home page explains the voice-first lesson style, shows which languages exist, and sends the learner into sign-in when they are ready to begin.",
   },
   {
-    title: "Use Google as the clean entry point",
+    title: "Sign in, then enter the dashboard",
     description:
-      "Signup and login stay simple so users move quickly into the product without friction or second-guessing.",
+      "Google auth handles account access first. After login, users arrive in a simple dashboard where they can see the available courses and pick their path.",
   },
   {
-    title: "Guide them to Basic 1",
+    title: "Start a level and practice inside the lesson runner",
     description:
-      "The dashboard immediately points users into the first live lesson so they can start speaking without friction.",
+      "Inside a course, learners choose a level, open a module, hear the tutor phrase, record an answer, review the transcript and feedback, then continue step by step.",
+  },
+  {
+    title: "Track progress as modules are completed",
+    description:
+      "The course workspace stores lesson progress, marks modules in progress or completed, and prepares certificates when a full level is finished.",
   },
 ] as const;
 
 export const processHighlights = [
-  "Premium landing page establishes trust in under 10 seconds.",
-  "Google login removes friction and keeps the first conversion clean.",
-  "A focused dashboard gives users one obvious next action after auth: start learning.",
-] as const;
-
-export const landingComparison = [
-  {
-    title: "Speaking over memorization",
-    description:
-      "Instead of trapping users in passive vocabulary loops, the product makes them hear, repeat, and improve live.",
-  },
-  {
-    title: "Real lessons before complexity",
-    description:
-      "Users start speaking inside structured lessons immediately instead of getting trapped in setup, pricing, or clutter.",
-  },
-  {
-    title: "Premium funnel, not utility UI",
-    description:
-      "The experience should feel like a serious modern education brand, not a cheap tool with forms and tables.",
-  },
-] as const;
-
-export const landingTestimonials = [
-  {
-    name: "Speaking-first brand",
-    role: "Positioning direction",
-    quote:
-      "This feels like a premium coaching product, not another language app trying to win with flashcards.",
-  },
-  {
-    name: "Trust-building entry",
-    role: "Conversion direction",
-    quote:
-      "The first live lesson should prove the learning path is real within minutes, not after a long setup flow.",
-  },
-  {
-    name: "Clean phase-one scope",
-    role: "Execution direction",
-    quote:
-      "Landing page, Google auth, and a simple dashboard are enough to make the business feel tangible right away.",
-  },
+  "Japanese is the only live course right now, so the page should say that clearly.",
+  "Google auth leads into the dashboard without a separate onboarding maze.",
+  "Lessons already support tutor playback, recording, transcript capture, and scoring feedback.",
+  "Module progress is saved, and finished levels can unlock certificates.",
 ] as const;
 
 export const landingHeroStats = [
-  { value: "5", label: "Launch languages in the first release." },
-  { value: "1", label: "One focused lesson flow to start speaking fast." },
-  { value: "Free", label: "Every available course stays open to learners." },
+  { value: "1", label: "Japanese course is live right now." },
+  { value: "Voice", label: "Tutor playback, recording, transcript, and scoring." },
+  { value: "Free", label: "Current released lessons stay open to learners." },
 ] as const;
 
 export const dashboardCourses = [
