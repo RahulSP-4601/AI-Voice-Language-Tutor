@@ -37,16 +37,33 @@ function rotate<T>(items: T[], start: number, count: number) {
   return Array.from({ length: count }, (_, index) => items[(start + index) % items.length]);
 }
 
+function buildQuestionOptions(
+  items: PracticeCard[],
+  promptIndex: number,
+  optionStart: number,
+) {
+  const promptItem = items[promptIndex];
+  const distractors = rotate(
+    items.filter((_, index) => index !== promptIndex),
+    optionStart,
+    3,
+  ).map((item) => item.english);
+
+  const insertIndex = optionStart % 4;
+  const options = [...distractors];
+  options.splice(insertIndex, 0, promptItem.english);
+  return options;
+}
+
 function buildMeaningQuestion(
   items: PracticeCard[],
   promptIndex: number,
   optionStart: number,
 ) {
   const promptItem = items[promptIndex];
-  const options = rotate(items, optionStart, 4).map((item) => item.english);
   return {
     answer: promptItem.english,
-    options,
+    options: buildQuestionOptions(items, promptIndex, optionStart),
     prompt: `What does ${promptItem.japanese} mean?`,
   } satisfies PracticeQuizQuestion;
 }
