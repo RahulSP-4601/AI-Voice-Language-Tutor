@@ -11,7 +11,7 @@ function DashboardBrand() {
   return (
     <div>
       <p className="text-xs uppercase tracking-[0.35em] text-amber-200">
-        AI Voice Language Tutor
+        Pronouncly
       </p>
       <p className="mt-2 text-sm text-stone-400">
         Voice-first learning dashboard

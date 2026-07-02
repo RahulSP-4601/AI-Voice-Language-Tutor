@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Voice Language Tutor",
+  title: "Pronouncly",
   description:
     "Premium voice-first language learning with Google auth, guided speaking lessons, and structured course paths.",
 };

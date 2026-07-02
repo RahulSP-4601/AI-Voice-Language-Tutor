@@ -15,7 +15,7 @@ export function GET() {
     launchReady,
     ok: true,
     ready: launchReady,
-    service: "ai-voice-tutor",
+    service: "pronouncly",
     timestamp: new Date().toISOString(),
   });
 }

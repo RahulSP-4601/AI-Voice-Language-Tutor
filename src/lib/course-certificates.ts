@@ -153,7 +153,7 @@ export function renderCertificateHtml(certificate: StoredCertificate) {
 </head>
 <body>
   <main>
-    <div class="eyebrow">AI Voice Language Tutor</div>
+    <div class="eyebrow">Pronouncly</div>
     <h1>${certificate.title}</h1>
     <p>This certificate is proudly awarded to</p>
     <h2>${certificate.learnerName}</h2>
