@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import { hasLessonAiEnv } from "@/lib/runtime-guards";
-import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { hasSupabaseEnv, hasSupabaseServiceRoleEnv } from "@/lib/supabase/env";
 
 export function GET() {
   const supabaseConfigured = hasSupabaseEnv();
+  const rateLimitConfigured = hasSupabaseServiceRoleEnv();
   const lessonAiConfigured = hasLessonAiEnv();
-  const launchReady = supabaseConfigured && lessonAiConfigured;
+  const launchReady = supabaseConfigured && lessonAiConfigured && rateLimitConfigured;
 
   return NextResponse.json({
     checks: {
       lessonAiConfigured,
+      rateLimitConfigured,
       supabaseConfigured,
     },
     launchReady,

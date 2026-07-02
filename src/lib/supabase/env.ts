@@ -28,3 +28,19 @@ export function getSupabaseEnv() {
   const anonKey = rawAnonKey.trim();
   return { url, anonKey };
 }
+
+export function hasSupabaseServiceRoleEnv() {
+  return readEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+export function getSupabaseServiceRoleEnv() {
+  const { url } = getSupabaseEnv();
+  const rawServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  assertEnvValue(rawServiceRoleKey, "SUPABASE_SERVICE_ROLE_KEY");
+
+  return {
+    serviceRoleKey: rawServiceRoleKey.trim(),
+    url,
+  };
+}

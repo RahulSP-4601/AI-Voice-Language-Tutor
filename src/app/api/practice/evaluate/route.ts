@@ -90,11 +90,15 @@ function createRateLimitResponse(message: string, resetAt: number) {
 }
 
 function enforcePracticeEvaluationLimit(request: Request) {
-  const rateLimit = enforceRateLimit({
+  return enforceRateLimit({
     key: `practice-evaluate:${getRequestIp(request)}`,
     limit: 12,
     windowMs: 60_000,
   });
+}
+
+async function getPracticeEvaluationRateLimitResponse(request: Request) {
+  const rateLimit = await enforcePracticeEvaluationLimit(request);
   if (rateLimit.success) {
     return null;
   }
@@ -107,7 +111,7 @@ function enforcePracticeEvaluationLimit(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const rateLimitResponse = enforcePracticeEvaluationLimit(request);
+    const rateLimitResponse = await getPracticeEvaluationRateLimitResponse(request);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }

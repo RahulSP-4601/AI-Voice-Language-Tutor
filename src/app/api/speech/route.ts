@@ -77,7 +77,7 @@ async function toSpeechResponse(response: Response) {
 
 export async function POST(request: Request) {
   try {
-    const rateLimit = enforceRateLimit({
+    const rateLimit = await enforceRateLimit({
       key: `speech:${getRequestIp(request)}`,
       limit: 30,
       windowMs: 60_000,

@@ -105,11 +105,15 @@ function createRateLimitResponse(message: string, resetAt: number) {
 }
 
 function enforceLessonEvaluationLimit(request: Request) {
-  const rateLimit = enforceRateLimit({
+  return enforceRateLimit({
     key: `lesson-evaluate:${getRequestIp(request)}`,
     limit: 12,
     windowMs: 60_000,
   });
+}
+
+async function getLessonEvaluationRateLimitResponse(request: Request) {
+  const rateLimit = await enforceLessonEvaluationLimit(request);
   if (rateLimit.success) {
     return null;
   }
@@ -122,7 +126,7 @@ function enforceLessonEvaluationLimit(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const rateLimitResponse = enforceLessonEvaluationLimit(request);
+    const rateLimitResponse = await getLessonEvaluationRateLimitResponse(request);
     if (rateLimitResponse) {
       return rateLimitResponse;
     }
