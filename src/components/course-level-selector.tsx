@@ -31,7 +31,6 @@ function LevelCard(props: {
       </p>
       <div className="mt-5 flex flex-wrap gap-3">
         <LevelMeta label={`${props.level.modules.length} lessons`} />
-        <LevelMeta label={props.level.examConfig.title} />
       </div>
     </Link>
   );

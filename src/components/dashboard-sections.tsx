@@ -9,11 +9,11 @@ export { CourseWorkspace } from "@/components/course-workspace";
 
 function DashboardBrand() {
   return (
-    <div>
-      <p className="text-xs uppercase tracking-[0.35em] text-amber-200">
+    <div className="min-w-[15rem] sm:min-w-[18rem]">
+      <p className="text-sm uppercase tracking-[0.42em] text-amber-200 sm:text-base">
         Pronouncly
       </p>
-      <p className="mt-2 text-sm text-stone-400">
+      <p className="mt-2 text-base text-stone-400 sm:text-lg">
         Voice-first learning dashboard
       </p>
     </div>

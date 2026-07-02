@@ -11,7 +11,7 @@ import { getCourseAvailabilityLabel, isCourseReleased } from "@/lib/course-prese
 function LandingNav() {
   return (
     <nav className="mb-9 flex items-center justify-between rounded-full border border-white/10 bg-white/5 px-5 py-3 backdrop-blur">
-      <p className="text-xs uppercase tracking-[0.4em] text-amber-200">
+      <p className="text-sm uppercase tracking-[0.46em] text-amber-200 sm:text-base">
         Pronouncly
       </p>
       <div className="flex items-center gap-3 text-sm text-stone-300">
