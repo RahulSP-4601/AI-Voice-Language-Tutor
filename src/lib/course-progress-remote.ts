@@ -94,15 +94,36 @@ async function fetchPracticeRows(supabase: SupabaseClient, slug: CourseSlug) {
   return (data ?? []) as PracticeItemRow[];
 }
 
+async function fetchPracticeRowsForModule(
+  supabase: SupabaseClient,
+  slug: CourseSlug,
+  moduleId: string,
+) {
+  const { data, error } = await supabase
+    .from("user_practice_item_progress")
+    .select(
+      "module_id, item_id, done, last_score, last_transcript, pronunciation_score, accuracy_score, fluency_score, coaching_feedback, practiced_at",
+    )
+    .eq("language_slug", slug)
+    .eq("module_id", moduleId);
+
+  if (error) throw error;
+  return (data ?? []) as PracticeItemRow[];
+}
+
 export async function loadRemoteCourseProgress(
   course: LanguageCourseDefinition,
   slug: CourseSlug,
+  options?: { practiceModuleId?: string | null },
 ) {
   const supabase = getBrowserSupabase();
+  const practiceRowsPromise = options?.practiceModuleId
+    ? fetchPracticeRowsForModule(supabase, slug, options.practiceModuleId)
+    : fetchPracticeRows(supabase, slug);
   const [{ data: authData }, moduleRows, practiceRows] = await Promise.all([
     supabase.auth.getUser(),
     fetchModuleRows(supabase, slug),
-    fetchPracticeRows(supabase, slug),
+    practiceRowsPromise,
   ]);
   const userId = authData.user?.id ?? null;
   if (!userId) {
@@ -115,6 +136,22 @@ export async function loadRemoteCourseProgress(
   return { progress, userId };
 }
 
+export async function loadRemoteModulePracticeItems(
+  slug: CourseSlug,
+  moduleId: string,
+) {
+  const supabase = getBrowserSupabase();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user?.id) {
+    return null;
+  }
+
+  const rows = await fetchPracticeRowsForModule(supabase, slug, moduleId);
+  return Object.fromEntries(
+    rows.map((row) => [row.item_id, buildStoredPracticeItem(row)]),
+  ) satisfies Record<string, StoredPracticeItemProgress>;
+}
+
 function samePracticeItem(
   left?: StoredPracticeItemProgress,
   right?: StoredPracticeItemProgress,
@@ -124,6 +161,22 @@ function samePracticeItem(
 
 function sameModule(left?: StoredModuleProgress, right?: StoredModuleProgress) {
   return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+export function hasRemoteProgressChanges(
+  previous: StoredCourseProgress,
+  next: StoredCourseProgress,
+) {
+  return changedModuleIds(previous, next).length > 0;
+}
+
+export function hasImportantRemoteProgressChanges(
+  previous: StoredCourseProgress,
+  next: StoredCourseProgress,
+) {
+  return changedModuleIds(previous, next).some((moduleId) =>
+    hasImportantModuleChange(previous.modules[moduleId], next.modules[moduleId]),
+  );
 }
 
 function isTouchedModule(module: StoredModuleProgress) {
@@ -186,6 +239,50 @@ function toPracticeRow(
 function changedModuleIds(previous: StoredCourseProgress, next: StoredCourseProgress) {
   return Object.keys(next.modules).filter((moduleId) =>
     !sameModule(previous.modules[moduleId], next.modules[moduleId]),
+  );
+}
+
+function hasImportantModuleChange(
+  previous: StoredModuleProgress,
+  next: StoredModuleProgress,
+) {
+  if (
+    previous.state !== next.state ||
+    previous.sessionsStarted !== next.sessionsStarted ||
+    previous.completedAt !== next.completedAt
+  ) {
+    return true;
+  }
+
+  const itemIds = new Set([
+    ...Object.keys(previous.practiceItems),
+    ...Object.keys(next.practiceItems),
+  ]);
+
+  return Array.from(itemIds).some((itemId) =>
+    hasImportantPracticeItemChange(
+      previous.practiceItems[itemId],
+      next.practiceItems[itemId],
+    ),
+  );
+}
+
+function hasImportantPracticeItemChange(
+  previous?: StoredPracticeItemProgress,
+  next?: StoredPracticeItemProgress,
+) {
+  if (!previous || !next) {
+    return Boolean(previous) !== Boolean(next);
+  }
+
+  return (
+    previous.done !== next.done ||
+    previous.lastScore !== next.lastScore ||
+    previous.practicedAt !== next.practicedAt ||
+    previous.pronunciationScore !== next.pronunciationScore ||
+    previous.accuracyScore !== next.accuracyScore ||
+    previous.fluencyScore !== next.fluencyScore ||
+    previous.coachingFeedback !== next.coachingFeedback
   );
 }
 

@@ -56,19 +56,13 @@ function hasCourseShape(course: LanguageCourseDefinition) {
 function getResolvedCourseSetup(
   course: LanguageCourseDefinition | null,
   preferredLevel: string | undefined,
-  progress: NonNullable<ReturnType<typeof useCourseProgress>["progress"]> | null,
 ) {
   if (!course || !hasCourseShape(course)) {
     return null;
   }
 
-  if (!progress) {
-    return { course, progress: null, selection: null };
-  }
-
   return {
     course,
-    progress,
     selection: getPreferredSelection(course, preferredLevel),
   };
 }
@@ -103,29 +97,32 @@ function useActiveCourse(slug: CourseSlug, preferredLevel?: string) {
   const courseState = useCourseDefinition(slug);
   const course = courseState.course;
   const [selection, setSelection] = useState<CourseSelection | null>(null);
-  const { progress, ready, setProgress } = useCourseProgress(slug, course);
+  const setup = getResolvedCourseSetup(course, preferredLevel);
+  const activeSelection = selection ?? setup?.selection ?? null;
+  const { isModuleReady, progress, ready, setProgress } = useCourseProgress(slug, course, {
+    activeModuleId: activeSelection?.moduleId,
+    practiceScope: "active-module",
+  });
 
   if (courseState.loading) {
     return { ready: false } as const;
   }
 
-  const setup = getResolvedCourseSetup(course, preferredLevel, progress);
   if (!setup) {
     return { ready: "missing" } as const;
-  }
-
-  if (!setup.progress) {
-    return { ready: false } as const;
   }
 
   if (!setup.selection) {
     return { ready: "missing" } as const;
   }
 
-  const activeSelection = selection ?? setup.selection;
+  if (!progress || !activeSelection || !ready || !isModuleReady(activeSelection.moduleId)) {
+    return { ready: false } as const;
+  }
+
   return buildCourseWorkspaceState({
     course: setup.course,
-    progress: setup.progress,
+    progress,
     ready,
     selection: activeSelection,
     setProgress,
