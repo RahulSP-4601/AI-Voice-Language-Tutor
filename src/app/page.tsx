@@ -1,4 +1,5 @@
 import {
+  DiscordSection,
   HeroSection,
   LanguagesSection,
   ProcessSection,
@@ -10,6 +11,7 @@ export default function Home() {
       <HeroSection />
       <LanguagesSection />
       <ProcessSection />
+      <DiscordSection />
     </main>
   );
 }

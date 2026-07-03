@@ -350,3 +350,43 @@ export function ProcessSection() {
     </section>
   );
 }
+
+export function DiscordSection() {
+  return (
+    <section className="px-6 pb-20 pt-4 sm:px-10 lg:px-14">
+      <div className="mx-auto max-w-7xl">
+        <div className="relative overflow-hidden rounded-[2rem] border border-indigo-300/20 bg-[linear-gradient(135deg,rgba(88,101,242,0.18),rgba(14,20,24,0.96)_45%,rgba(16,185,129,0.12))] p-7 shadow-[0_28px_90px_rgba(20,25,40,0.38)] sm:p-9">
+          <div className="pointer-events-none absolute inset-y-0 right-[-6rem] w-56 rounded-full bg-indigo-300/10 blur-3xl" />
+          <div className="pointer-events-none absolute left-[-4rem] top-[-3rem] h-36 w-36 rounded-full bg-amber-300/12 blur-3xl" />
+          <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="max-w-2xl">
+              <p className="text-sm uppercase tracking-[0.35em] text-indigo-100">
+                Join The Community
+              </p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
+                Learn with other Pronouncly members inside our Discord server.
+              </h2>
+              <p className="mt-4 text-sm leading-7 text-stone-200 sm:text-base sm:leading-8">
+                Ask questions, share progress, meet other learners, and stay close
+                to new lessons, updates, and launch announcements.
+              </p>
+            </div>
+            <div className="flex flex-col gap-4">
+              <Link
+                href="https://discord.gg/GebWZKDkc"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c8cff_0%,#5865f2_100%)] px-7 py-4 text-center text-sm font-semibold text-white transition duration-300 hover:scale-[1.02] hover:shadow-[0_24px_60px_rgba(88,101,242,0.4)] sm:text-base"
+              >
+                Join Discord Server
+              </Link>
+              <p className="text-center text-xs uppercase tracking-[0.22em] text-stone-300">
+                Free community access
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
