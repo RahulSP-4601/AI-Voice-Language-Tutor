@@ -128,7 +128,6 @@ function SessionCard() {
           <MetricCard label="Confidence" value="92%" />
           <MetricCard label="Lesson flow" value="Live" />
         </div>
-        <HeroDiscordCallout />
       </div>
     </div>
   );
@@ -151,6 +150,9 @@ function HeroVisual() {
       <div className="pointer-events-none absolute inset-0 animate-[pulse_5s_ease-in-out_infinite] rounded-[2rem] bg-[radial-gradient(circle_at_top,rgba(247,200,116,0.18),transparent_58%)]" />
       <div className="relative rotate-[-2deg] rounded-[2rem] border border-white/10 bg-[#0c1010]/90 p-5 shadow-[0_30px_100px_rgba(0,0,0,0.45)] backdrop-blur">
         <SessionCard />
+        <div className="mt-4">
+          <HeroDiscordCallout />
+        </div>
       </div>
     </div>
   );
