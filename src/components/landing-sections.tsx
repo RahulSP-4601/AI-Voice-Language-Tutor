@@ -128,6 +128,7 @@ function SessionCard() {
           <MetricCard label="Confidence" value="92%" />
           <MetricCard label="Lesson flow" value="Live" />
         </div>
+        <HeroDiscordCallout />
       </div>
     </div>
   );
@@ -263,15 +264,12 @@ export function LanguagesSection() {
   return (
     <section id="courses" className="px-6 py-18 sm:px-10 lg:px-14">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8">
-          <SectionHeading
-            className="max-w-2xl"
-            eyebrow="Language Paths"
-            title="Start with the live course now and see the full language roadmap."
-            body="Japanese is already open in the product today. The rest of the language paths are visible so learners can see what is live now and what is coming next."
-          />
-          <CenteredDiscordCallout />
-        </div>
+        <SectionHeading
+          className="mb-8 max-w-2xl"
+          eyebrow="Language Paths"
+          title="Start with the live course now and see the full language roadmap."
+          body="Japanese is already open in the product today. The rest of the language paths are visible so learners can see what is live now and what is coming next."
+        />
         <div className="grid gap-5 lg:grid-cols-5">
           {landingLanguages.map((language) => (
             <LanguageCard key={language.name} {...language} />
@@ -282,37 +280,29 @@ export function LanguagesSection() {
   );
 }
 
-function CenteredDiscordCallout() {
+function HeroDiscordCallout() {
   return (
-    <div className="mt-8 flex justify-center">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-indigo-300/20 bg-[linear-gradient(135deg,rgba(88,101,242,0.16),rgba(255,255,255,0.04)_50%,rgba(16,185,129,0.1))] p-5 shadow-[0_20px_60px_rgba(10,14,25,0.24)] sm:p-6">
-        <div className="pointer-events-none absolute right-[-3rem] top-[-2rem] h-24 w-24 rounded-full bg-indigo-300/20 blur-2xl" />
-        <div className="pointer-events-none absolute bottom-[-3rem] left-[-2rem] h-24 w-24 rounded-full bg-amber-300/12 blur-2xl" />
-        <div className="relative text-center">
+    <div className="relative overflow-hidden rounded-2xl border border-indigo-300/15 bg-[linear-gradient(135deg,rgba(88,101,242,0.16),rgba(12,16,16,0.9)_55%,rgba(16,185,129,0.12))] p-4">
+      <div className="pointer-events-none absolute right-[-2rem] top-[-2rem] h-20 w-20 rounded-full bg-indigo-300/18 blur-2xl" />
+      <div className="pointer-events-none absolute bottom-[-2.5rem] left-[-1rem] h-20 w-20 rounded-full bg-amber-300/10 blur-2xl" />
+      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
           <p className="text-[11px] uppercase tracking-[0.3em] text-indigo-100">
             Community Access
           </p>
-          <h3 className="mt-3 text-xl font-semibold text-white sm:text-2xl">
-            Join our Discord while you learn.
-          </h3>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-stone-200">
-            Meet other learners, ask questions, and keep up with new lesson
+          <p className="mt-2 max-w-sm text-sm leading-6 text-stone-200">
+            Join Discord for learner support, progress updates, and new lesson
             drops.
           </p>
-          <div className="mt-5 flex flex-col items-center gap-3">
-            <Link
-              href="https://discord.gg/GebWZKDkc"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c8cff_0%,#5865f2_100%)] px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:scale-[1.02] hover:shadow-[0_20px_50px_rgba(88,101,242,0.35)]"
-            >
-              Join Discord Server
-            </Link>
-            <p className="text-xs uppercase tracking-[0.22em] text-stone-300">
-              Free to join
-            </p>
-          </div>
         </div>
+        <Link
+          href="https://discord.gg/GebWZKDkc"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c8cff_0%,#5865f2_100%)] px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:scale-[1.02] hover:shadow-[0_20px_50px_rgba(88,101,242,0.35)]"
+        >
+          Join Discord Server
+        </Link>
       </div>
     </div>
   );
