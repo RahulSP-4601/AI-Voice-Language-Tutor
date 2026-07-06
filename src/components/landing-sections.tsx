@@ -263,12 +263,43 @@ export function LanguagesSection() {
   return (
     <section id="courses" className="px-6 py-18 sm:px-10 lg:px-14">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          className="mb-8 max-w-2xl"
-          eyebrow="Language Paths"
-          title="Start with the live course now and see the full language roadmap."
-          body="Japanese is already open in the product today. The rest of the language paths are visible so learners can see what is live now and what is coming next."
-        />
+        <div className="mb-8 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:items-end">
+          <SectionHeading
+            className="max-w-2xl"
+            eyebrow="Language Paths"
+            title="Start with the live course now and see the full language roadmap."
+            body="Japanese is already open in the product today. The rest of the language paths are visible so learners can see what is live now and what is coming next."
+          />
+          <div className="relative overflow-hidden rounded-[1.75rem] border border-indigo-300/20 bg-[linear-gradient(135deg,rgba(88,101,242,0.16),rgba(255,255,255,0.04)_50%,rgba(16,185,129,0.1))] p-5 shadow-[0_20px_60px_rgba(10,14,25,0.24)]">
+            <div className="pointer-events-none absolute right-[-3rem] top-[-2rem] h-24 w-24 rounded-full bg-indigo-300/20 blur-2xl" />
+            <div className="pointer-events-none absolute bottom-[-3rem] left-[-2rem] h-24 w-24 rounded-full bg-amber-300/12 blur-2xl" />
+            <div className="relative">
+              <p className="text-[11px] uppercase tracking-[0.3em] text-indigo-100">
+                Community Access
+              </p>
+              <h3 className="mt-3 text-xl font-semibold text-white">
+                Join our Discord while you learn.
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-stone-200">
+                Meet other learners, ask questions, and keep up with new
+                lesson drops.
+              </p>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-start">
+                <Link
+                  href="https://discord.gg/GebWZKDkc"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c8cff_0%,#5865f2_100%)] px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:scale-[1.02] hover:shadow-[0_20px_50px_rgba(88,101,242,0.35)]"
+                >
+                  Join Discord Server
+                </Link>
+                <p className="text-xs uppercase tracking-[0.22em] text-stone-300">
+                  Free to join
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="grid gap-5 lg:grid-cols-5">
           {landingLanguages.map((language) => (
             <LanguageCard key={language.name} {...language} />
