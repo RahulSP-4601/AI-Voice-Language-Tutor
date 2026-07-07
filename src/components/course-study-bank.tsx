@@ -5,6 +5,7 @@ import { PracticeCheckpointCard } from "@/components/practice-checkpoint-card";
 import { PracticeCarouselCard } from "@/components/practice-carousel-card";
 import { useAudioRecorder } from "@/components/use-audio-recorder";
 import { usePracticeEvaluation } from "@/components/use-practice-evaluation";
+import { useTutorSpeechPlayback } from "@/components/use-tutor-speech-playback";
 import {
   type CourseModule,
   type CourseSlug,
@@ -20,7 +21,6 @@ import {
   CHECKPOINT_QUESTION_COUNT,
   getPendingCheckpointQuiz,
 } from "@/lib/practice-checkpoint-quiz";
-import { playTutorAudioSequence } from "@/lib/tutor-audio";
 
 function SectionShell(props: { children: React.ReactNode; title: string }) {
   return (
@@ -59,16 +59,6 @@ function EmptyState(props: { message: string }) {
 
 function hasScoredAttempt(score?: number | null) {
   return typeof score === "number";
-}
-
-function speakPrompt(item: PracticeCard, slug: CourseSlug) {
-  void playTutorAudioSequence([
-    {
-      fallbackText: item.reading,
-      slug,
-      text: item.japanese,
-    },
-  ]);
 }
 
 function firstPendingItemId(
@@ -207,8 +197,11 @@ function buildCarouselState(input: {
 
 function buildCardProps(input: {
   evaluation: ReturnType<typeof usePracticeEvaluation>;
+  isPlayingAudio: boolean;
   items: PracticeCard[];
   onSave: (itemId: string, value: StoredPracticeItemProgress) => void;
+  playbackError: string;
+  playPhrase: (phrase: string, fallbackPhrase?: string) => Promise<void>;
   progress: Record<string, StoredPracticeItemProgress>;
   recorder: ReturnType<typeof useAudioRecorder>;
   recordingItemId: string;
@@ -223,6 +216,7 @@ function buildCardProps(input: {
     currentIndex: input.selectedIndex,
     error: input.evaluation.error,
     isEvaluating: input.evaluation.isEvaluating,
+    isPlayingAudio: input.isPlayingAudio,
     item: input.selected,
     onMarkDone: () =>
       input.onSave(input.selected.id, markDone(input.progress[input.selected.id])),
@@ -230,7 +224,7 @@ function buildCardProps(input: {
       input.setSelectedId(
         input.items[input.selectedIndex + 1]?.id ?? input.selected.id,
       ),
-    onPlay: () => speakPrompt(input.selected, input.slug),
+    onPlay: () => input.playPhrase(input.selected.japanese, input.selected.reading),
     onPrev: () =>
       input.setSelectedId(
         input.items[input.selectedIndex - 1]?.id ?? input.selected.id,
@@ -245,6 +239,7 @@ function buildCardProps(input: {
         setRecordingItemId: input.setRecordingItemId,
         slug: input.slug,
       }),
+    playbackError: input.playbackError,
     slug: input.slug,
     supported: input.recorder.supported,
     totalCount: input.items.length,
@@ -265,6 +260,7 @@ function PracticeCarousel(props: {
   );
   const recorder = useAudioRecorder();
   const evaluation = usePracticeEvaluation();
+  const playback = useTutorSpeechPlayback(props.slug);
   const [recordingItemId, setRecordingItemId] = useState("");
 
   if (checkpoint) {
@@ -280,8 +276,11 @@ function PracticeCarousel(props: {
       <PracticeCarouselCard
         {...buildCardProps({
           evaluation,
+          isPlayingAudio: playback.isPlaying,
           items: props.items,
           onSave: props.onSave,
+          playbackError: playback.playbackError,
+          playPhrase: playback.playPhrase,
           progress: props.progress,
           recorder,
           recordingItemId,

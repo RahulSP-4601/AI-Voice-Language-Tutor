@@ -162,18 +162,23 @@ function PracticeActions(props: {
   canMoveNext: boolean;
   done: boolean;
   isEvaluating: boolean;
+  isPlayingAudio: boolean;
   isRecording: boolean;
   onMarkDone: () => void;
-  onPlay: () => void;
+  onPlay: () => Promise<void>;
   onRecord: () => void;
+  playbackError?: string;
   slug: string;
   supported: boolean;
 }) {
   return (
     <div className="mt-5 flex flex-wrap gap-3">
       <ActionButton
-        label="How does it sound?"
-        onClick={props.onPlay}
+        disabled={props.isPlayingAudio}
+        label={props.isPlayingAudio ? "Loading audio..." : "How does it sound?"}
+        onClick={() => {
+          void props.onPlay();
+        }}
       />
       <ActionButton
         disabled={!props.supported || props.isEvaluating}
@@ -193,6 +198,9 @@ function PracticeActions(props: {
           ? "You can move to the next card."
           : "Record one attempt, then mark this one green when you are ready."}
       </span>
+      {props.playbackError ? (
+        <span className="self-center text-sm text-rose-200">{props.playbackError}</span>
+      ) : null}
     </div>
   );
 }
@@ -231,13 +239,15 @@ type PracticeCarouselCardProps = {
   doneCount: number;
   error?: string;
   isEvaluating: boolean;
+  isPlayingAudio: boolean;
   isRecording: boolean;
   item: PracticeCard;
   onMarkDone: () => void;
   onNext: () => void;
-  onPlay: () => void;
+  onPlay: () => Promise<void>;
   onPrev: () => void;
   onRecord: () => void;
+  playbackError?: string;
   slug: string;
   supported: boolean;
   totalCount: number;
@@ -261,10 +271,12 @@ function PracticeCarouselBody(props: PracticeCarouselCardProps) {
         canMoveNext={props.canGoNext}
         done={Boolean(props.current?.done)}
         isEvaluating={props.isEvaluating}
+        isPlayingAudio={props.isPlayingAudio}
         isRecording={props.isRecording}
         onMarkDone={props.onMarkDone}
         onPlay={props.onPlay}
         onRecord={props.onRecord}
+        playbackError={props.playbackError}
         slug={props.slug}
         supported={props.supported}
       />

@@ -2,8 +2,6 @@
 
 import { type RefObject, useEffect, useRef, useState } from "react";
 import { type CourseSlug } from "@/lib/course-definitions";
-import { playCourseSpeech, speechSynthesisSupported } from "@/lib/browser-speech";
-import { playTutorAudioSequence } from "@/lib/tutor-audio";
 
 type RecognitionShape = {
   abort: () => void;
@@ -96,26 +94,6 @@ function useRecognitionLifecycle(input: {
   }, [onTranscript, recognitionCtor, recognitionRef, setIsListening, slug]);
 }
 
-function createPhrasePlayer(slug: CourseSlug) {
-  return async (phrase: string, fallbackPhrase?: string) => {
-    await playTutorAudioSequence([
-      {
-        fallbackText: fallbackPhrase,
-        slug,
-        text: phrase,
-      },
-    ]).catch(() => {
-      if (speechSynthesisSupported()) {
-        playCourseSpeech({
-          fallbackText: fallbackPhrase,
-          primaryText: phrase,
-          slug,
-        });
-      }
-    });
-  };
-}
-
 export function useLessonSpeech(
   slug: CourseSlug,
   onTranscript: (value: string) => void,
@@ -124,7 +102,6 @@ export function useLessonSpeech(
   const [isListening, setIsListening] = useState(false);
   const recognitionCtor = getSpeechRecognitionCtor();
   const supported = Boolean(recognitionCtor);
-  const playPhrase = createPhrasePlayer(slug);
 
   useRecognitionLifecycle({
     onTranscript,
@@ -151,7 +128,7 @@ export function useLessonSpeech(
     stopRecognition(recognitionRef.current, setIsListening);
   }
 
-  return { isListening, playPhrase, startListening, stopListening, supported };
+  return { isListening, startListening, stopListening, supported };
 }
 
 declare global {

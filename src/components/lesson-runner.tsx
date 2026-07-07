@@ -10,6 +10,7 @@ import {
 import { useAudioRecorder } from "@/components/use-audio-recorder";
 import { useLessonEvaluation } from "@/components/use-lesson-evaluation";
 import { useLessonSpeech } from "@/components/use-lesson-speech";
+import { useTutorSpeechPlayback } from "@/components/use-tutor-speech-playback";
 
 type LessonRunnerProps = {
   currentTurn: number;
@@ -34,10 +35,7 @@ function normalizeText(value: string) {
   return value.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim();
 }
 
-function matchesResponse(
-  transcript: string,
-  acceptableResponses: string[],
-) {
+function matchesResponse(transcript: string, acceptableResponses: string[]) {
   const normalized = normalizeText(transcript);
   return acceptableResponses.some((value) => {
     const target = normalizeText(value);
@@ -46,6 +44,7 @@ function matchesResponse(
 }
 
 function LessonActionButton(props: {
+  disabled?: boolean;
   label: string;
   muted?: boolean;
   onClick: () => void;
@@ -53,9 +52,12 @@ function LessonActionButton(props: {
   return (
     <button
       type="button"
+      disabled={props.disabled}
       onClick={props.onClick}
       className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-        props.muted
+        props.disabled
+          ? "cursor-not-allowed border-white/10 bg-white/[0.04] text-stone-400"
+          : props.muted
           ? "border-white/10 bg-white/[0.04] text-stone-200 hover:bg-white/[0.08]"
           : "border-amber-300/20 bg-amber-300/12 text-amber-100 hover:bg-amber-300/18"
       }`}
@@ -86,12 +88,14 @@ function StepCard(props: {
 }
 
 function PracticeCard(props: {
+  audioError: string;
+  isPlayingAudio: boolean;
   isEvaluating: boolean;
   isRecording: boolean;
   lesson: CourseLesson;
   moduleState: CompletionState;
   onRecord: () => void;
-  onPlay: () => void;
+  onPlay: () => Promise<void>;
   transcript: string;
 }) {
   return (
@@ -112,13 +116,22 @@ function PracticeCard(props: {
         {props.lesson.replyPrompt}
       </p>
       <div className="mt-5 flex flex-wrap gap-3">
-        <LessonActionButton label="How does it sound?" onClick={props.onPlay} />
+        <LessonActionButton
+          disabled={props.isPlayingAudio}
+          label={props.isPlayingAudio ? "Loading audio..." : "How does it sound?"}
+          onClick={() => {
+            void props.onPlay();
+          }}
+        />
         <LessonActionButton
           label={getRecordLabel(props.isEvaluating, props.isRecording)}
           muted={props.isEvaluating || props.moduleState === "not_started"}
           onClick={props.onRecord}
         />
       </div>
+      {props.audioError ? (
+        <p className="mt-4 text-sm text-rose-200">{props.audioError}</p>
+      ) : null}
       <TranscriptPanel transcript={props.transcript} />
     </div>
   );
@@ -234,7 +247,7 @@ export function LessonRunner(props: LessonRunnerProps) {
 
 function buildTutorLinePlayer(
   lesson: CourseLesson,
-  playPhrase: (phrase: string, fallbackPhrase?: string) => void,
+  playPhrase: (phrase: string, fallbackPhrase?: string) => Promise<void>,
 ) {
   const fallbackPhrase = lesson.acceptableResponses.find(
     (value) => value !== lesson.demoPhrase,
@@ -248,10 +261,8 @@ function useLessonRunnerState(props: LessonRunnerProps) {
   const [transcript, setTranscript] = useState(props.lastTranscript);
   const recorder = useAudioRecorder();
   const evaluation = useLessonEvaluation();
-  const { isListening, playPhrase, startListening, supported } = useLessonSpeech(
-    props.slug,
-    setTranscript,
-  );
+  const { isListening, startListening, supported } = useLessonSpeech(props.slug, setTranscript);
+  const playback = useTutorSpeechPlayback(props.slug);
 
   useTurnSync(currentTurn, props.onTurnChange);
   useTranscriptSync(transcript, props.onTranscriptChange);
@@ -271,15 +282,17 @@ function useLessonRunnerState(props: LessonRunnerProps) {
     setTranscript,
     slug: props.slug,
   });
-  const playTutorLine = buildTutorLinePlayer(props.lesson, playPhrase);
+  const playTutorLine = buildTutorLinePlayer(props.lesson, playback.playPhrase);
 
   return {
     advanceTurn: turnHandlers.advanceTurn,
+    audioError: playback.playbackError,
     currentTurn,
     evaluation: evaluation.evaluation,
     evaluationError: evaluation.error,
     isListening,
     isEvaluating: evaluation.isEvaluating,
+    isPlayingAudio: playback.isPlaying,
     isRecording: recorder.isRecording,
     playTutorLine,
     recordAnswer: handleRecord,
@@ -358,13 +371,15 @@ function createRecordHandler(input: {
 function LessonRunnerBody(
   props: LessonRunnerProps & {
     advanceTurn: () => void;
+    audioError: string;
     currentTurn: number;
     evaluation: LessonEvaluation | null;
     evaluationError: string;
     isListening: boolean;
     isEvaluating: boolean;
+    isPlayingAudio: boolean;
     isRecording: boolean;
-    playTutorLine: () => void;
+    playTutorLine: () => Promise<void>;
     recordAnswer: () => Promise<void>;
     startLesson: () => void;
     startListening: () => void;
@@ -378,6 +393,7 @@ function LessonRunnerBody(
         moduleState={props.moduleState}
         isListening={props.isListening}
         isEvaluating={props.isEvaluating}
+        isPlayingAudio={props.isPlayingAudio}
         isRecording={props.isRecording}
         supported={props.supported}
         onAdvance={props.advanceTurn}
@@ -393,10 +409,12 @@ function LessonRunnerBody(
 function LessonRunnerContent(
   props: Pick<
     Parameters<typeof LessonRunnerBody>[0],
+    | "audioError"
     | "currentTurn"
     | "evaluation"
     | "evaluationError"
     | "isEvaluating"
+    | "isPlayingAudio"
     | "isRecording"
     | "lesson"
     | "moduleState"
@@ -411,8 +429,10 @@ function LessonRunnerContent(
       <StepCard currentIndex={props.currentTurn} lesson={props.lesson} />
       <TrustedProcessCard progressSummary={props.progressSummary} />
       <PracticeCard
+        audioError={props.audioError}
         lesson={props.lesson}
         moduleState={props.moduleState}
+        isPlayingAudio={props.isPlayingAudio}
         isEvaluating={props.isEvaluating}
         isRecording={props.isRecording}
         onRecord={props.recordAnswer}
@@ -432,11 +452,12 @@ function LessonRunnerContent(
 function LessonRunnerActions(props: {
   isListening: boolean;
   isEvaluating: boolean;
+  isPlayingAudio: boolean;
   isRecording: boolean;
   moduleState: CompletionState;
   onAdvance: () => void;
   onListen: () => void;
-  onPlay: () => void;
+  onPlay: () => Promise<void>;
   onStart: () => void;
   supported: boolean;
 }) {
@@ -446,7 +467,14 @@ function LessonRunnerActions(props: {
         <LessonActionButton label="Start lesson" onClick={props.onStart} />
       ) : null}
       <LessonActionButton label="Next step" onClick={props.onAdvance} />
-      <LessonActionButton label="How does it sound?" muted onClick={props.onPlay} />
+      <LessonActionButton
+        disabled={props.isPlayingAudio}
+        label={props.isPlayingAudio ? "Loading audio..." : "How does it sound?"}
+        muted
+        onClick={() => {
+          void props.onPlay();
+        }}
+      />
       {props.supported ? (
         <LessonActionButton
           label={
