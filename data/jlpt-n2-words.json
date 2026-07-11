@@ -6186,7 +6186,7 @@
     {
       "id": 343,
       "japanese": "特有",
-      "reading": "特有",
+      "reading": "とくゆう",
       "phoneticHint": "",
       "english": "Typical, representative",
       "wordType": "vocabulary",
@@ -6726,7 +6726,7 @@
     {
       "id": 373,
       "japanese": "的確",
-      "reading": "的確",
+      "reading": "てきかく",
       "phoneticHint": "",
       "english": "Accuracy",
       "wordType": "vocabulary",
@@ -6744,7 +6744,7 @@
     {
       "id": 374,
       "japanese": "不的確",
-      "reading": "不的確",
+      "reading": "ふてきかく",
       "phoneticHint": "",
       "english": "Not exactly",
       "wordType": "vocabulary",
@@ -6762,7 +6762,7 @@
     {
       "id": 375,
       "japanese": "確実",
-      "reading": "確実",
+      "reading": "かくじつ",
       "phoneticHint": "",
       "english": "Authenticity",
       "wordType": "vocabulary",
@@ -6780,7 +6780,7 @@
     {
       "id": 376,
       "japanese": "不確実",
-      "reading": "不確実",
+      "reading": "ふかくじつ",
       "phoneticHint": "",
       "english": "Not authenticated",
       "wordType": "vocabulary",
@@ -6798,7 +6798,7 @@
     {
       "id": 377,
       "japanese": "明らか",
-      "reading": "明らか",
+      "reading": "あきらか",
       "phoneticHint": "rah-kah",
       "english": "Clear",
       "wordType": "vocabulary",

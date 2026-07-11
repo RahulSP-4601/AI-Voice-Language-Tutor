@@ -17,6 +17,7 @@ let activeAudio: HTMLAudioElement | null = null;
 let activeObjectUrl: string | null = null;
 const SPEECH_AUDIO_CACHE_TTL_MS = 60 * 60 * 1000;
 const SPEECH_AUDIO_CACHE_MAX_ENTRIES = 120;
+const MIN_SPEECH_AUDIO_BYTES = 256;
 const speechAudioCache = new Map<string, CachedSpeechAudio>();
 const inflightSpeechRequests = new Map<string, Promise<Blob>>();
 
@@ -113,6 +114,9 @@ async function fetchSpeechAudioForText(segment: TutorAudioSegment, text: string)
     }
 
     const audioBlob = await response.blob();
+    if (audioBlob.size < MIN_SPEECH_AUDIO_BYTES) {
+      throw new Error("Tutor audio response was empty.");
+    }
     if (shouldCacheSpeechAudio(response)) {
       writeCachedSpeechAudio(cacheKey, audioBlob);
     }
