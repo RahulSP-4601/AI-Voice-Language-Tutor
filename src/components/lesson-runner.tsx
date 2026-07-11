@@ -3,14 +3,13 @@
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import {
   type CompletionState,
-  type CourseLesson,
-  type CourseSlug,
-  type LessonEvaluation,
+  type CourseLesson, type CourseSlug, type LessonEvaluation,
 } from "@/lib/course-definitions";
 import { useAudioRecorder } from "@/components/use-audio-recorder";
 import { useLessonEvaluation } from "@/components/use-lesson-evaluation";
 import { useLessonSpeech } from "@/components/use-lesson-speech";
 import { useTutorSpeechPlayback } from "@/components/use-tutor-speech-playback";
+import { resolveLessonSpeechText } from "@/lib/lesson-speech-text";
 
 type LessonRunnerProps = {
   currentTurn: number;
@@ -247,13 +246,12 @@ export function LessonRunner(props: LessonRunnerProps) {
 
 function buildTutorLinePlayer(
   lesson: CourseLesson,
+  slug: CourseSlug,
   playPhrase: (phrase: string, fallbackPhrase?: string) => Promise<void>,
 ) {
-  const fallbackPhrase = lesson.acceptableResponses.find(
-    (value) => value !== lesson.demoPhrase,
-  );
-
-  return () => playPhrase(lesson.demoPhrase, fallbackPhrase);
+  const speechText = resolveLessonSpeechText(lesson, slug);
+  const fallbackPhrase = lesson.acceptableResponses.find((value) => value !== speechText);
+  return () => playPhrase(speechText, fallbackPhrase);
 }
 
 function useLessonRunnerState(props: LessonRunnerProps) {
@@ -282,7 +280,11 @@ function useLessonRunnerState(props: LessonRunnerProps) {
     setTranscript,
     slug: props.slug,
   });
-  const playTutorLine = buildTutorLinePlayer(props.lesson, playback.playPhrase);
+  const playTutorLine = buildTutorLinePlayer(
+    props.lesson,
+    props.slug,
+    playback.playPhrase,
+  );
 
   return {
     advanceTurn: turnHandlers.advanceTurn,
