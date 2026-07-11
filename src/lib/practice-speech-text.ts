@@ -1,4 +1,5 @@
 import { type PracticeCard } from "@/lib/module-practice";
+import { generatePronunciationHint } from "@/lib/pronunciation-hint";
 
 const JAPANESE_NUMBER_OVERRIDES: Record<string, string> = {
   九: "きゅう",
@@ -43,6 +44,10 @@ function resolvePreferredReading(card: PracticeCard) {
 
 export function resolvePracticeDisplayReading(card: PracticeCard) {
   return resolvePreferredReading(card);
+}
+
+export function resolvePracticePhoneticHint(card: PracticeCard) {
+  return generatePronunciationHint(resolvePreferredReading(card));
 }
 
 export function resolvePracticeSpeechText(card: PracticeCard) {

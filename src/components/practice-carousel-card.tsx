@@ -2,7 +2,10 @@
 
 import { type StoredPracticeItemProgress } from "@/lib/course-progress";
 import { type PracticeCard } from "@/lib/module-practice";
-import { resolvePracticeDisplayReading } from "@/lib/practice-speech-text";
+import {
+  resolvePracticeDisplayReading,
+  resolvePracticePhoneticHint,
+} from "@/lib/practice-speech-text";
 
 function Metric(props: { label: string; value: string }) {
   return (
@@ -91,6 +94,7 @@ function CarouselHeader(props: {
 
 function WordCopy(props: { item: PracticeCard; slug: string }) {
   const spokenReading = resolvePracticeDisplayReading(props.item);
+  const phoneticHint = resolvePracticePhoneticHint(props.item);
 
   return (
     <>
@@ -110,7 +114,7 @@ function WordCopy(props: { item: PracticeCard; slug: string }) {
         Sound hint
       </p>
       <p className="mt-2 text-sm text-stone-300">
-        <span className="text-white">{props.item.phoneticHint}</span>
+        <span className="text-white">{phoneticHint}</span>
       </p>
       <p className="mt-4 text-xl text-stone-100">{props.item.english}</p>
       <p className="mt-4 text-sm leading-7 text-stone-400">{props.item.example}</p>
