@@ -41,6 +41,10 @@ function resolvePreferredReading(card: PracticeCard) {
   return normalizeReadingValue(variants[0]);
 }
 
+export function resolvePracticeDisplayReading(card: PracticeCard) {
+  return resolvePreferredReading(card);
+}
+
 export function resolvePracticeSpeechText(card: PracticeCard) {
   if (hasJapaneseCharacters(card.reading)) {
     return resolvePreferredReading(card);

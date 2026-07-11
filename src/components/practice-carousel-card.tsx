@@ -2,6 +2,7 @@
 
 import { type StoredPracticeItemProgress } from "@/lib/course-progress";
 import { type PracticeCard } from "@/lib/module-practice";
+import { resolvePracticeDisplayReading } from "@/lib/practice-speech-text";
 
 function Metric(props: { label: string; value: string }) {
   return (
@@ -89,16 +90,26 @@ function CarouselHeader(props: {
 }
 
 function WordCopy(props: { item: PracticeCard; slug: string }) {
+  const spokenReading = resolvePracticeDisplayReading(props.item);
+
   return (
     <>
+      <p className="mt-5 text-xs uppercase tracking-[0.18em] text-stone-400">
+        Written word
+      </p>
       <p className="mt-5 text-[2.35rem] font-semibold tracking-[-0.04em] text-white">
         {props.item.japanese}
       </p>
-      <p className="mt-3 text-sm uppercase tracking-[0.18em] text-amber-100">
-        {props.item.reading}
+      <p className="mt-5 text-xs uppercase tracking-[0.18em] text-stone-400">
+        Say
+      </p>
+      <p className="mt-2 text-lg font-medium text-amber-100">
+        {spokenReading}
+      </p>
+      <p className="mt-4 text-xs uppercase tracking-[0.18em] text-stone-400">
+        Sound hint
       </p>
       <p className="mt-2 text-sm text-stone-300">
-        Say it like: 
         <span className="text-white">{props.item.phoneticHint}</span>
       </p>
       <p className="mt-4 text-xl text-stone-100">{props.item.english}</p>
