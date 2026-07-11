@@ -15,8 +15,11 @@ type CachedSpeechAudio = {
 
 let activeAudio: HTMLAudioElement | null = null;
 let activeObjectUrl: string | null = null;
+let activeAudioContext: AudioContext | null = null;
+let activeSourceNode: AudioBufferSourceNode | null = null;
 const SPEECH_AUDIO_CACHE_TTL_MS = 60 * 60 * 1000;
 const SPEECH_AUDIO_CACHE_MAX_ENTRIES = 120;
+const SPEECH_GAIN = 1.8;
 const speechAudioCache = new Map<string, CachedSpeechAudio>();
 const inflightSpeechRequests = new Map<string, Promise<Blob>>();
 
@@ -30,6 +33,12 @@ function clearActiveAudio() {
   if (activeObjectUrl) {
     URL.revokeObjectURL(activeObjectUrl);
     activeObjectUrl = null;
+  }
+
+  if (activeSourceNode) {
+    activeSourceNode.stop();
+    activeSourceNode.disconnect();
+    activeSourceNode = null;
   }
 }
 
@@ -83,8 +92,9 @@ function shouldCacheSpeechAudio(response: Response) {
   return response.headers.get("X-Tutor-Voice-Fallback") !== "1";
 }
 
-async function fetchSpeechAudio(segment: TutorAudioSegment) {
-  const cacheKey = getSpeechCacheKey(segment);
+async function fetchSpeechAudioForText(segment: TutorAudioSegment, text: string) {
+  const normalizedText = text.trim();
+  const cacheKey = getSpeechCacheKey({ ...segment, text: normalizedText });
   const cachedAudio = readCachedSpeechAudio(cacheKey);
   if (cachedAudio) {
     return cachedAudio;
@@ -103,7 +113,7 @@ async function fetchSpeechAudio(segment: TutorAudioSegment) {
       },
       body: JSON.stringify({
         slug: segment.slug,
-        text: segment.text,
+        text: normalizedText,
       }),
     });
 
@@ -127,11 +137,92 @@ async function fetchSpeechAudio(segment: TutorAudioSegment) {
   }
 }
 
-function playBlob(blob: Blob) {
+async function fetchSpeechAudio(segment: TutorAudioSegment) {
+  try {
+    return await fetchSpeechAudioForText(segment, segment.text);
+  } catch (error) {
+    const fallbackText = segment.fallbackText?.trim();
+    if (!fallbackText || fallbackText === segment.text.trim()) {
+      throw error;
+    }
+
+    return fetchSpeechAudioForText(segment, fallbackText);
+  }
+}
+
+function getAudioContext() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const AudioContextCtor = window.AudioContext
+    ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextCtor) {
+    return null;
+  }
+
+  activeAudioContext ??= new AudioContextCtor();
+  return activeAudioContext;
+}
+
+async function playBlobWithGain(blob: Blob) {
+  const audioContext = getAudioContext();
+  if (!audioContext) {
+    return false;
+  }
+
+  if (audioContext.state === "suspended") {
+    await audioContext.resume();
+  }
+
+  const arrayBuffer = await blob.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+  const source = audioContext.createBufferSource();
+  const gainNode = audioContext.createGain();
+  source.buffer = audioBuffer;
+  gainNode.gain.value = SPEECH_GAIN;
+  source.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  activeSourceNode = source;
+
+  return new Promise<boolean>((resolve, reject) => {
+    source.onended = () => {
+      source.disconnect();
+      gainNode.disconnect();
+      if (activeSourceNode === source) {
+        activeSourceNode = null;
+      }
+      resolve(true);
+    };
+
+    try {
+      source.start(0);
+    } catch (error) {
+      source.disconnect();
+      gainNode.disconnect();
+      if (activeSourceNode === source) {
+        activeSourceNode = null;
+      }
+      reject(error);
+    }
+  });
+}
+
+async function playBlob(blob: Blob) {
   clearActiveAudio();
+
+  try {
+    const played = await playBlobWithGain(blob);
+    if (played) {
+      return;
+    }
+  } catch {
+    clearActiveAudio();
+  }
 
   const objectUrl = URL.createObjectURL(blob);
   const audio = new Audio(objectUrl);
+  audio.volume = 1;
   activeAudio = audio;
   activeObjectUrl = objectUrl;
 

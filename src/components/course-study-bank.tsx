@@ -17,6 +17,10 @@ import {
   type PracticeCard,
 } from "@/lib/module-practice";
 import {
+  resolvePracticeSpeechFallback,
+  resolvePracticeSpeechText,
+} from "@/lib/practice-speech-text";
+import {
   CHECKPOINT_PASS_SCORE,
   CHECKPOINT_QUESTION_COUNT,
   getPendingCheckpointQuiz,
@@ -195,6 +199,13 @@ function buildCarouselState(input: {
   };
 }
 
+function practiceSpeechArgs(item: PracticeCard) {
+  return [
+    resolvePracticeSpeechText(item),
+    resolvePracticeSpeechFallback(item),
+  ] as const;
+}
+
 function buildCardProps(input: {
   evaluation: ReturnType<typeof usePracticeEvaluation>;
   isPlayingAudio: boolean;
@@ -224,7 +235,7 @@ function buildCardProps(input: {
       input.setSelectedId(
         input.items[input.selectedIndex + 1]?.id ?? input.selected.id,
       ),
-    onPlay: () => input.playPhrase(input.selected.japanese, input.selected.reading),
+    onPlay: () => input.playPhrase(...practiceSpeechArgs(input.selected)),
     onPrev: () =>
       input.setSelectedId(
         input.items[input.selectedIndex - 1]?.id ?? input.selected.id,
