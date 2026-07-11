@@ -15,12 +15,8 @@ type CachedSpeechAudio = {
 
 let activeAudio: HTMLAudioElement | null = null;
 let activeObjectUrl: string | null = null;
-let activeAudioContext: AudioContext | null = null;
-let activeMediaSourceNode: MediaElementAudioSourceNode | null = null;
-let activeGainNode: GainNode | null = null;
 const SPEECH_AUDIO_CACHE_TTL_MS = 60 * 60 * 1000;
 const SPEECH_AUDIO_CACHE_MAX_ENTRIES = 120;
-const SPEECH_GAIN = 1.8;
 const speechAudioCache = new Map<string, CachedSpeechAudio>();
 const inflightSpeechRequests = new Map<string, Promise<Blob>>();
 
@@ -34,16 +30,6 @@ function clearActiveAudio() {
   if (activeObjectUrl) {
     URL.revokeObjectURL(activeObjectUrl);
     activeObjectUrl = null;
-  }
-
-  if (activeMediaSourceNode) {
-    activeMediaSourceNode.disconnect();
-    activeMediaSourceNode = null;
-  }
-
-  if (activeGainNode) {
-    activeGainNode.disconnect();
-    activeGainNode = null;
   }
 }
 
@@ -155,37 +141,6 @@ async function fetchSpeechAudio(segment: TutorAudioSegment) {
   }
 }
 
-function getAudioContext() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const AudioContextCtor = window.AudioContext
-    ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AudioContextCtor) {
-    return null;
-  }
-
-  activeAudioContext ??= new AudioContextCtor();
-  return activeAudioContext;
-}
-
-function connectAudioWithGain(audio: HTMLAudioElement) {
-  const audioContext = getAudioContext();
-  if (!audioContext) {
-    return false;
-  }
-
-  const gainNode = audioContext.createGain();
-  gainNode.gain.value = SPEECH_GAIN;
-  const sourceNode = audioContext.createMediaElementSource(audio);
-  sourceNode.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  activeMediaSourceNode = sourceNode;
-  activeGainNode = gainNode;
-  return true;
-}
-
 async function playBlob(blob: Blob) {
   clearActiveAudio();
 
@@ -196,24 +151,6 @@ async function playBlob(blob: Blob) {
   activeObjectUrl = objectUrl;
 
   return new Promise<void>((resolve, reject) => {
-    const audioContext = getAudioContext();
-    if (audioContext?.state === "suspended") {
-      void audioContext.resume().catch(() => {});
-    }
-
-    try {
-      connectAudioWithGain(audio);
-    } catch {
-      if (activeMediaSourceNode) {
-        activeMediaSourceNode.disconnect();
-        activeMediaSourceNode = null;
-      }
-      if (activeGainNode) {
-        activeGainNode.disconnect();
-        activeGainNode = null;
-      }
-    }
-
     audio.onended = () => {
       clearActiveAudio();
       resolve();
